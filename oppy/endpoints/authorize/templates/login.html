@@ -1,0 +1,28 @@
+<html>
+
+<body>
+    <form method="POST" action="/authorize">
+
+        <div>
+            <label for="username" title="username">user name:
+                <input type="text" name="username">
+            </label>
+        </div>
+        <label for="password" title="password">password:
+            <input type="text" name="password">
+        </label>
+
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+        <input type="hidden" name="client_id" value="{{req.client_id}}">
+        {% if 'state' in req %}
+        <input type="hidden" name="state" value="{{req.state}}">
+        {% endif %}
+        {% if 'nonce' in req %}
+        <input type="hidden" name="nonce" value="{{req.nonce}}">
+        {% endif %}
+        <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
+    </form>
+</body>
+</html>
