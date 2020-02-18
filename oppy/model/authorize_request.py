@@ -11,9 +11,8 @@ class AuthorizeRequest:
 
     def __init__(self, dictionary):
         self.parameters = dictionary
-        # validate request parameters
+        # validate required request parameters
         self.client_id = self.validate_has_parameter('client_id', 400)
-        self.redirect_uri = self.validate_has_parameter('redirect_uri', 400)
         self.response_type = self.validate_has_parameter('response_type', 302)
 
     @classmethod
@@ -27,15 +26,25 @@ class AuthorizeRequest:
     def process(self, clients):
         "Handles initial redirect to OP, validates query parameter and displays login page"
 
+        # client id must identify a registered client
         client = next((item for item in clients if item['client_id'] == self.client_id), None)
         if not client:
             raise AuthorizeRequestError(400, 'unknown client')
 
+        # only support code flow for now
         if self.parameters['response_type'] != 'code':
             raise AuthorizeRequestError(302, 'unsupported flow')
 
-        if self.parameters['redirect_uri'] != client['redirect_uri']:
+        # redirect_uri query parameter is optional, but when specified must match one of the registed URIs
+        if 'redirect_uri' in self.parameters and self.parameters['redirect_uri'] not in client['redirect_uris']:
             raise AuthorizeRequestError(400, 'invalid redirect uri')
+
+        # require PKCE for public clients
+        if client['public']:
+            self.code_challenge = self.validate_has_parameter('code_challenge', 302)
+            self.code_challenge_method = self.validate_has_parameter('code_challenge_method', 302)
+            if self.code_challenge_method != "SHA256":
+                raise AuthorizeRequestError(302, 'invalid_request')
 
         return self.parameters
 

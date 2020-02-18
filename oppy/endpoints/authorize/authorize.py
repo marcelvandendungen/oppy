@@ -11,12 +11,12 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 # default test clients
 clients = [{
     'client_id': 'confidential_client',
-    'redirect_uri': 'http://localhost:5001/cb',
+    'redirect_uris': ['http://localhost:5001/cb'], # must be absolute URL, may contain query params, must not contain fragment
     'public': False
 }, 
 {
     'client_id': 'public_client',
-    'redirect_uri': 'http://localhost:5002/cb',
+    'redirect_uris': ['http://localhost:5002/cb'],
     'public': True
 }]
 
@@ -37,7 +37,8 @@ def process_authorization_request():
         return generate_error_response(ex)
 
 def process_authentication_request():
-    # POST of credentials
+    # check credentials and other required form variables
+    # issue code if all correct
     auth_req = AuthorizeRequest.from_form_variables(request.form)
     return auth_req.issue_code()
 

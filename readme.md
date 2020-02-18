@@ -1,5 +1,8 @@
+# OPPY
 
-# Run app instructions
+An OpenID Connect Provider and OAuth2 authorization server in Python Flask
+
+## Run app instructions
 
 ```bash
 #!/bin/bash
@@ -7,9 +10,9 @@ $ cd oppy
 $ flask run
 ```
 
-# Run test instructions
+## Run test instructions
 
 ```bash
 #!/bin/bash
-$ pytest
+$ pytest [-v]
 ```
