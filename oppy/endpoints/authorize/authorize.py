@@ -7,7 +7,7 @@ logger = logging.getLogger('authorize')
 logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-def create_blueprint(testing, clients):
+def create_blueprint(clients):
     authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates')
 
     @authorize_bp.route('/authorize', methods=["GET", "POST"])
@@ -38,6 +38,6 @@ def generate_error_response(ex):
     logger.error(ex)
 
     if ex.http_code == 302:
-        return redirect("/?error=something", code=302)
+        return redirect("/?error=" + ex.error, code=302)
 
     return "Error occurred", ex.http_code

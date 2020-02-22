@@ -1,3 +1,4 @@
+import os
 import sys
 
 from flask import Flask
@@ -19,9 +20,9 @@ clients = [{
 
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
-app.config['TESTING'] = True
-app.register_blueprint(create_authorize_bp(app.config['TESTING'], clients))
-app.register_blueprint(create_token_blueprint(app.config['TESTING'], clients))
+app.config['TESTING'] = os.environ.get('TESTING') == 'True'
+app.register_blueprint(create_authorize_bp(clients))
+app.register_blueprint(create_token_blueprint(clients))
 
 def main():
     print('running main')

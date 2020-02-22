@@ -2,7 +2,8 @@
     These tests depend on 2 registered clients with ids: 'confidential_client' and 'public_client'
 """
 
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, parse_qsl
+import urllib.parse as urlparse
 from bs4 import BeautifulSoup
 
 
@@ -38,7 +39,8 @@ def test_missing_response_type_results_in_redirect(test_client):
         state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
-    assert response.headers['Location'] == 'http://localhost/?error=something'
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['error'] == 'invalid_request'
 
 
 def test_query_parameters_are_reflected_in_response(test_client):
@@ -83,6 +85,8 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
         response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['error'] == 'invalid_request'
 
 
 def create_url(path, **query_params):
