@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, request, make_response, render_template
+from flask import Blueprint, request, make_response, render_template, redirect
 from oppy.model.authorize_request import AuthorizeRequest, AuthorizeRequestError
 
 authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates')
@@ -44,4 +44,8 @@ def process_authentication_request():
 
 def generate_error_response(ex):
     logger.error(ex)
-    return "Error occurred", ex.error_code
+
+    if ex.http_code == 302:
+        return redirect("/?error=something", code=302)
+
+    return "Error occurred", ex.http_code
