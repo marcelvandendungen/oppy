@@ -116,5 +116,21 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
     assert query_params['error_description'] == 'code challenge required'
 
 
+def test_post_to_authorize_issues_code(test_client):
+
+    form_vars = {
+        'client_id': 'confidential_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['code'] == 'abcdef'
+    assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+
+
 def create_url(path, **query_params):
     return path + '?' + urlencode(query_params)

@@ -33,7 +33,7 @@ def process_authentication_request(clients):
     # check credentials and other required form variables
     # issue code if all correct
     auth_req = AuthorizeRequest.from_form_variables(request.form)
-    return auth_req.issue_code()
+    return redirect(auth_req.redirection_url(clients))
 
 def generate_error_response(ex):
     logger.error(ex)
