@@ -22,6 +22,9 @@
         {% if 'nonce' in req %}
         <input type="hidden" name="nonce" value="{{req.nonce}}">
         {% endif %}
+        {% if 'scope' in req %}
+        <input type="hidden" name="scope" value="{{req.scope}}">
+        {% endif %}
         <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
     </form>
 </body>

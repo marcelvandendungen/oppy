@@ -48,6 +48,10 @@ class AuthorizeRequest:
             if self.code_challenge_method != "SHA256":
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
 
+        # only support code flow for now
+        if self.parameters.get('scope'):
+            self.scope = self.parameters['scope']
+
         return self.parameters
 
     def issue_code(self):

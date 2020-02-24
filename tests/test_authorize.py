@@ -74,7 +74,7 @@ def test_query_parameters_are_reflected_in_response(test_client):
         THEN:   response is 200 OK with parameters as hidden input fields in the HTML
     """
     url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb', response_type='code', \
-        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
 
@@ -82,6 +82,7 @@ def test_query_parameters_are_reflected_in_response(test_client):
     assert soup.find('input', dict(name='client_id'))['value'] == 'confidential_client'
     assert soup.find('input', dict(name='redirect_uri'))['value'] == 'http://localhost:5001/cb'
     assert soup.find('input', dict(name='state'))['value'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+    assert soup.find('input', dict(name='scope'))['value'] == 'scope1 scope2'
 
 
 def test_missing_query_parameters_not_reflected_in_response(test_client):
@@ -96,6 +97,7 @@ def test_missing_query_parameters_not_reflected_in_response(test_client):
 
     assert response.status_code == 200
     assert soup.find('input', dict(name='state')) == None
+    assert soup.find('scope', dict(name='scope')) == None
     assert soup.find('input', dict(name='nonce')) == None
 
 
