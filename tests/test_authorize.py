@@ -18,6 +18,16 @@ def test_missing_client_id_results_in_error(test_client):
     assert response.status_code == 400
 
 
+def test_invalid_client_id_results_in_error(test_client):
+    """
+        GIVEN:  GET request to the /authorize endpoint
+        WHEN:   client_id query parameter is not registered
+        THEN:   response is 400 Bad Request
+    """
+    url = create_url('/authorize', client_id='unknown_client', response_type='code', redirect_uri='xyz')
+    response = test_client.get(url)
+    assert response.status_code == 400
+
 def test_invalid_redirect_uri_results_in_error(test_client):
     """
         GIVEN:  GET request to the /authorize endpoint
@@ -41,6 +51,20 @@ def test_missing_response_type_results_in_redirect(test_client):
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['error'] == 'invalid_request'
+
+def test_unsupported_response_type_results_in_redirect(test_client):
+    """
+        GIVEN:  GET request to the /authorize endpoint
+        WHEN:   response_type query parameter is not supported
+        THEN:   response is 302 Redirect with error query parameter
+    """
+    url = create_url('/authorize', client_id='confidential_client', response_type='token', redirect_uri='http://localhost:5001/cb', \
+        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+    response = test_client.get(url)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['error'] == 'unsupported_response_type'
+
 
 
 def test_query_parameters_are_reflected_in_response(test_client):
@@ -87,6 +111,7 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['error'] == 'invalid_request'
+    assert query_params['error_description'] == 'code challenge required'
 
 
 def create_url(path, **query_params):

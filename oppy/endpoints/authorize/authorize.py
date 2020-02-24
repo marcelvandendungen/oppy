@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, request, make_response, render_template, redirect
 from oppy.model.authorize_request import AuthorizeRequest, AuthorizeRequestError
+from urllib.parse import urlencode
 
 logger = logging.getLogger('authorize')
 logger.setLevel(logging.INFO)
@@ -37,7 +38,13 @@ def process_authentication_request(clients):
 def generate_error_response(ex):
     logger.error(ex)
 
+    query_params = {
+        'error': ex.error
+    }
+    if ex.error_description:
+        query_params['error_description'] = ex.error_description
+
     if ex.http_code == 302:
-        return redirect("/?error=" + ex.error, code=302)
+        return redirect('/?' + urlencode(query_params), code=302)
 
     return "Error occurred", ex.http_code

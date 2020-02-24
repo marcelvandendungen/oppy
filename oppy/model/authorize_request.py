@@ -39,11 +39,11 @@ class AuthorizeRequest:
 
         # redirect_uri query parameter is optional, but when specified must match one of the registed URIs
         if 'redirect_uri' in self.parameters and self.parameters['redirect_uri'] not in client['redirect_uris']:
-            raise AuthorizeRequestError(400, 'invalid_redirect_uri', 'Not a registerd redirect uri')
+            raise AuthorizeRequestError(400, 'invalid_redirect_uri', 'Not a registered redirect uri')
 
         # require PKCE for public clients
         if client['public']:
-            self.code_challenge = self.validate_has_parameter('code_challenge', 302)
+            self.code_challenge = self.validate_has_parameter('code_challenge', 302, 'code challenge required')
             self.code_challenge_method = self.validate_has_parameter('code_challenge_method', 302)
             if self.code_challenge_method != "SHA256":
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
@@ -54,7 +54,8 @@ class AuthorizeRequest:
         "Handles the credential verification and issues the authorization code"
         return "authorize endpoint"
 
-    def validate_has_parameter(self, parameter, error_code):
+    def validate_has_parameter(self, parameter, error_code, error_description=""):
         if parameter not in self.parameters:
-            raise AuthorizeRequestError(error_code, 'invalid_request', parameter + ' parameter is missing')
+            description = parameter + ' parameter is missing' if error_description == "" else error_description
+            raise AuthorizeRequestError(error_code, 'invalid_request', description)
         return self.parameters[parameter]

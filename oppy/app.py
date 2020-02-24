@@ -26,7 +26,7 @@ app.register_blueprint(create_token_blueprint(clients))
 
 def main():
     print('running main')
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'])
 
 
 if __name__ == "__main__":
