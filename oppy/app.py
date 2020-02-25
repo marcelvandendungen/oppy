@@ -8,10 +8,10 @@ from oppy.endpoints.token.token import create_blueprint as create_token_blueprin
 # default test clients
 clients = [{
     'client_id': 'confidential_client',
-    'redirect_uris': ['http://localhost:5001/cb'], # must be absolute URL, may contain query params, must not contain fragment
+    # redirect_uris must be absolute URLs, may contain query params, may not contain fragment
+    'redirect_uris': ['http://localhost:5001/cb'],
     'public': False
-},
-{
+}, {
     'client_id': 'public_client',
     'redirect_uris': ['http://localhost:5002/cb'],
     'public': True
@@ -23,6 +23,7 @@ app = Flask(__name__)
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 app.register_blueprint(create_authorize_bp(clients))
 app.register_blueprint(create_token_blueprint(clients))
+
 
 def main():
     print('running main')

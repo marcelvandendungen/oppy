@@ -12,6 +12,14 @@
         "**/.factorypath": true
     },
     "cSpell.words": [
+        "PKCE",
         "oppy"
-    ]
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--max-line-length=120",
+        "--ignore=E402",
+    ],
+    "python.linting.enabled": true
 }

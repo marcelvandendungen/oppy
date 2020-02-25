@@ -3,7 +3,6 @@
 """
 
 from urllib.parse import urlencode, urlsplit, parse_qsl
-import urllib.parse as urlparse
 from bs4 import BeautifulSoup
 
 
@@ -28,6 +27,7 @@ def test_invalid_client_id_results_in_error(test_client):
     response = test_client.get(url)
     assert response.status_code == 400
 
+
 def test_invalid_redirect_uri_results_in_error(test_client):
     """
         GIVEN:  GET request to the /authorize endpoint
@@ -45,12 +45,13 @@ def test_missing_response_type_results_in_redirect(test_client):
         WHEN:   response_type query parameter is missing
         THEN:   response is 302 Redirect with error query parameter
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb', \
-        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+                     state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['error'] == 'invalid_request'
+
 
 def test_unsupported_response_type_results_in_redirect(test_client):
     """
@@ -58,13 +59,12 @@ def test_unsupported_response_type_results_in_redirect(test_client):
         WHEN:   response_type query parameter is not supported
         THEN:   response is 302 Redirect with error query parameter
     """
-    url = create_url('/authorize', client_id='confidential_client', response_type='token', redirect_uri='http://localhost:5001/cb', \
-        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+    url = create_url('/authorize', client_id='confidential_client', response_type='token',
+                     redirect_uri='http://localhost:5001/cb', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['error'] == 'unsupported_response_type'
-
 
 
 def test_query_parameters_are_reflected_in_response(test_client):
@@ -73,8 +73,8 @@ def test_query_parameters_are_reflected_in_response(test_client):
         WHEN:   query parameters are specified
         THEN:   response is 200 OK with parameters as hidden input fields in the HTML
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb', response_type='code', \
-        state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+                     response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
 
@@ -91,14 +91,15 @@ def test_missing_query_parameters_not_reflected_in_response(test_client):
         WHEN:   query parameters are specified, but no 'state' or 'nonce' query parameters
         THEN:   response is 200 OK and no hidden input fields with name 'state' or 'nonce' in the HTML
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb', response_type='code')
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+                     response_type='code')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
 
     assert response.status_code == 200
-    assert soup.find('input', dict(name='state')) == None
-    assert soup.find('scope', dict(name='scope')) == None
-    assert soup.find('input', dict(name='nonce')) == None
+    assert soup.find('input', dict(name='state')) is None
+    assert soup.find('scope', dict(name='scope')) is None
+    assert soup.find('input', dict(name='nonce')) is None
 
 
 def test_confidential_client_without_code_challenge_results_in_error(test_client):
@@ -107,8 +108,8 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
         WHEN:   client_id identifies a public client and code_challenge query parameter is missing
         THEN:   response is 302 Redirect with error query parameter (PKCE required for public clients)
     """
-    url = create_url('/authorize', client_id='public_client', redirect_uri='http://localhost:5002/cb', \
-        response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+    url = create_url('/authorize', client_id='public_client', redirect_uri='http://localhost:5002/cb',
+                     response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))

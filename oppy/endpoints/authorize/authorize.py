@@ -1,12 +1,13 @@
 import logging
 
 from flask import Blueprint, request, make_response, render_template, redirect
-from oppy.model.authorize_request import AuthorizeRequest, AuthorizeRequestError
+from oppy.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
 from urllib.parse import urlencode
 
 logger = logging.getLogger('authorize')
 logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 
 def create_blueprint(clients):
     authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates')
@@ -24,27 +25,19 @@ def create_blueprint(clients):
 def process_authorization_request(clients):
     # checks parameters and authenticates the resource owner
     try:
-        auth_req = AuthorizeRequest.from_request_parameters(request.args)
-        return make_response(render_template('login.html', req=auth_req.process(clients)))
+        authorize_request = AuthorizeRequest.from_dictionary(request.args).validate(clients)
+        return make_response(render_template('login.html', req=authorize_request))
+    except BadAuthorizeRequestError as ex:
+        logger.error(ex)
+        return "Error occurred: " + ex.error_description, 400
     except AuthorizeRequestError as ex:
-        return generate_error_response(ex)
+        logger.error(ex)
+        query_params = vars(ex)
+        return redirect('/?' + urlencode(query_params), code=302)
+
 
 def process_authentication_request(clients):
     # check credentials and other required form variables
     # issue code if all correct
-    auth_req = AuthorizeRequest.from_form_variables(request.form)
+    auth_req = AuthorizeRequest.from_dictionary(request.form)
     return redirect(auth_req.redirection_url(clients))
-
-def generate_error_response(ex):
-    logger.error(ex)
-
-    query_params = {
-        'error': ex.error
-    }
-    if ex.error_description:
-        query_params['error_description'] = ex.error_description
-
-    if ex.http_code == 302:
-        return redirect('/?' + urlencode(query_params), code=302)
-
-    return "Error occurred", ex.http_code
