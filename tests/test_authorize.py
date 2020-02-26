@@ -2,8 +2,8 @@
     These tests depend on 2 registered clients with ids: 'confidential_client' and 'public_client'
 """
 
-from urllib.parse import urlencode, urlsplit, parse_qsl
 from bs4 import BeautifulSoup
+from urllib.parse import urlencode, urlsplit, parse_qsl
 
 
 def test_missing_client_id_results_in_error(test_client):
@@ -118,6 +118,11 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
 
 
 def test_post_to_authorize_issues_code(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all form variables are present and correct
+        THEN:   response is 302 Redirect with code and state query parameters
+    """
 
     form_vars = {
         'client_id': 'confidential_client',
@@ -129,7 +134,97 @@ def test_post_to_authorize_issues_code(test_client):
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
-    assert query_params['code'] == 'abcdef'
+    assert query_params['code']
+    assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+
+
+def test_post_to_authorize_raised_error_if_client_id_is_missing(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   client id is missing from form variables
+        THEN:   response is 400 Bad Request
+    """
+
+    form_vars = {
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 400
+
+
+def test_post_to_authorize_raised_error_if_username_is_missing(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   client id is missing from form variables
+        THEN:   response is 400 Bad Request
+    """
+
+    form_vars = {
+        'client_id': 'public_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'password': 'P@ssW0rd123'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 400
+
+
+def test_post_to_authorize_raised_error_if_password_is_missing(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   client id is missing from form variables
+        THEN:   response is 400 Bad Request
+    """
+
+    form_vars = {
+        'client_id': 'public_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 400
+
+
+def test_post_to_authorize_raises_error_when_code_challenge_is_missing_for_public_client(test_client):
+
+    form_vars = {
+        'client_id': 'public_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert 'code' not in query_params
+    assert query_params['error'] == 'invalid_request'
+
+
+def test_post_to_authorize_issues_code_for_public_client(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all form variables are present and correct
+        THEN:   response is 302 Redirect with code and state query parameters
+    """
+
+    form_vars = {
+        'client_id': 'public_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123',
+        'code_challenge': 'abcdef'
+    }
+
+    # make authentication request -> verifies code verifier matches challenge
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['code']
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
 
 

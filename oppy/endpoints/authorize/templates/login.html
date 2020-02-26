@@ -25,6 +25,12 @@
         {% if 'scope' in req %}
         <input type="hidden" name="scope" value="{{req.scope}}">
         {% endif %}
+        {% if 'code_challenge' in req %}
+        <input type="hidden" name="code_challenge" value="{{req.code_challenge}}">
+        {% endif %}
+        {% if 'code_challenge_method' in req %}
+        <input type="hidden" name="code_challenge_method" value="{{req.code_challenge_method}}">
+        {% endif %}
         <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
     </form>
 </body>

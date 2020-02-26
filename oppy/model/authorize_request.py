@@ -1,4 +1,8 @@
 from urllib.parse import urlencode
+from oppy.model import crypto
+
+# authorization requests stored by client id
+authorization_requests = {}
 
 
 class BadAuthorizeRequestError(RuntimeError):
@@ -70,6 +74,11 @@ class AuthorizeRequest:
         if self.parameters.get('scope'):
             self.scope = self.parameters['scope']
 
+        request_info = vars(self).copy()
+        del request_info['parameters']
+
+        authorization_requests[self.client_id] = request_info  # create dict from object
+
         return self.parameters
 
     def redirection_url(self, clients):
@@ -87,6 +96,17 @@ class AuthorizeRequest:
         assert 'redirect_uris' in client
         self.redirect_uri = client['redirect_uris'][0]
 
+        if 'redirect_uri' in self.parameters:
+            # override of the redirect_uri
+            self.redirect_uri = self.parameters['redirect_uri']
+            if self.redirect_uri not in client['redirect_uris']:
+                raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
+
+        # require PKCE for public clients
+        if client['public']:
+            self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
+                                                                                       'code challenge missing'))
+            
         # redirect to redirect_uri with code and state as query parameters
         query_params = {
             'code': self.issue_code()
@@ -94,12 +114,6 @@ class AuthorizeRequest:
 
         if self.parameters.get('state'):
             query_params['state'] = self.parameters['state']
-
-        if 'redirect_uri' in self.parameters:
-            # override of the redirect_uri
-            self.redirect_uri = self.parameters['redirect_uri']
-            if self.redirect_uri not in client['redirect_uris']:
-                raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
 
         return self.redirect_uri + '?' + urlencode(query_params)
 
@@ -112,4 +126,4 @@ class AuthorizeRequest:
         return client
 
     def issue_code(self):
-        return 'abcdef'  # TODO: issue real code
+        return crypto.generate_code()
