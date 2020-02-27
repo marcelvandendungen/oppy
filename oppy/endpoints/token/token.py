@@ -1,5 +1,6 @@
 from flask import Blueprint
 
+
 def create_blueprint(clients):
     token_bp = Blueprint('token_bp', __name__)
 

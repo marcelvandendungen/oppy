@@ -1,8 +1,6 @@
 from urllib.parse import urlencode
 from oppy.model import crypto
-
-# authorization requests stored by client id
-authorization_requests = {}
+from oppy.model.authorization_request_store import authorization_requests
 
 
 class BadAuthorizeRequestError(RuntimeError):
@@ -77,7 +75,7 @@ class AuthorizeRequest:
         request_info = vars(self).copy()
         del request_info['parameters']
 
-        authorization_requests[self.client_id] = request_info  # create dict from object
+        authorization_requests.add(request_info)
 
         return self.parameters
 
@@ -89,6 +87,8 @@ class AuthorizeRequest:
         # throw Error if username or password missing
         self.require('username', BadAuthorizeRequestError('invalid_request', 'username not found'))
         self.require('password', BadAuthorizeRequestError('invalid_request', 'password not found'))
+
+        # TODO: verify user credentials
 
         # client id must identify a registered client
         client = self.lookup_client(clients)
@@ -106,7 +106,6 @@ class AuthorizeRequest:
         if client['public']:
             self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
                                                                                        'code challenge missing'))
-            
         # redirect to redirect_uri with code and state as query parameters
         query_params = {
             'code': self.issue_code()
