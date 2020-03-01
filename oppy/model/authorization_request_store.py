@@ -1,6 +1,9 @@
 
 
 class AuthorizationRequestStore:
+    """
+      Simple in-memory store for authorization requests
+    """
 
     def __init__(self):
         # authorization requests stored by client id

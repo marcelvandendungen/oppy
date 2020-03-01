@@ -217,7 +217,8 @@ def test_post_to_authorize_issues_code_for_public_client(test_client):
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'test_user',
         'password': 'P@ssW0rd123',
-        'code_challenge': 'abcdef'
+        'code_challenge': 'abcdef',
+        'code_challenge_method': 'SHA256'
     }
 
     # make authentication request -> verifies code verifier matches challenge

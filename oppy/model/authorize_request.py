@@ -36,37 +36,18 @@ class AuthorizeRequest:
     def validate(self, clients):
         "Handles initial redirect to OP, validates query parameters"
 
-        # if client id is missing, return bad request response
-        self.client_id = self.require('client_id', BadAuthorizeRequestError('invalid_request', 'client_id is missing'))
-        self.response_type = self.require('response_type', AuthorizeRequestError('invalid_request',
-                                          'response_type parameter is missing'))
-
         client = self.lookup_client(clients)
 
-        # by default redirect to first registered redirect_uri
-        assert 'redirect_uris' in client
-        self.redirect_uri = client['redirect_uris'][0]
+        self.response_type = self.require('response_type', AuthorizeRequestError('invalid_request',
+                                          'response_type parameter is missing'))
 
         # only support code flow for now
         if self.response_type != 'code':
             raise AuthorizeRequestError('unsupported_response_type', 'unsupported flow')
 
-        # redirect_uri query parameter is optional, but when specified must match one of the registed URIs
-        if 'redirect_uri' in self.parameters:
-            # override of the redirect_uri
-            self.redirect_uri = self.parameters['redirect_uri']
-            if self.redirect_uri not in client['redirect_uris']:
-                raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
+        self.override_redirect_uri(client)
 
-        # require PKCE for public clients
-        if client['public']:
-            self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
-                                                                                       'code challenge required'))
-            self.code_challenge_method = self.require('code_challenge_method',
-                                                      AuthorizeRequestError('invalid_request',
-                                                                            'code challenge method required'))
-            if self.code_challenge_method != "SHA256":
-                raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
+        self.validate_pkce(client)
 
         # if scope specified
         if self.parameters.get('scope'):
@@ -79,10 +60,11 @@ class AuthorizeRequest:
 
         return self.parameters
 
-    def redirection_url(self, clients):
+    def process(self, clients):
         "Handles the credential verification and issues the authorization code"
 
-        self.client_id = self.require('client_id', BadAuthorizeRequestError('invalid_request', 'client_id is missing'))
+        # client id must identify a registered client
+        client = self.lookup_client(clients)
 
         # throw Error if username or password missing
         self.require('username', BadAuthorizeRequestError('invalid_request', 'username not found'))
@@ -90,22 +72,12 @@ class AuthorizeRequest:
 
         # TODO: verify user credentials
 
-        # client id must identify a registered client
-        client = self.lookup_client(clients)
+        self.override_redirect_uri(client)
+        self.validate_pkce(client)
 
-        assert 'redirect_uris' in client
-        self.redirect_uri = client['redirect_uris'][0]
+        return self
 
-        if 'redirect_uri' in self.parameters:
-            # override of the redirect_uri
-            self.redirect_uri = self.parameters['redirect_uri']
-            if self.redirect_uri not in client['redirect_uris']:
-                raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
-
-        # require PKCE for public clients
-        if client['public']:
-            self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
-                                                                                       'code challenge missing'))
+    def redirection_url(self):
         # redirect to redirect_uri with code and state as query parameters
         query_params = {
             'code': self.issue_code()
@@ -118,11 +90,35 @@ class AuthorizeRequest:
 
     def lookup_client(self, clients):
         "look up client in registered clients by client id"
+
+        # if client id is missing, return bad request response
+        self.client_id = self.require('client_id', BadAuthorizeRequestError('invalid_request', 'client_id is missing'))
+
         client = next((item for item in clients if item['client_id'] == self.client_id), None)
         if not client:
             raise BadAuthorizeRequestError('unknown_client', 'Client not registered')
 
+        assert 'redirect_uris' in client
+        self.redirect_uri = client['redirect_uris'][0]
+
         return client
+
+    def override_redirect_uri(self, client):
+        if 'redirect_uri' in self.parameters:
+            self.redirect_uri = self.parameters['redirect_uri']
+            if self.redirect_uri not in client['redirect_uris']:
+                raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
+
+    def validate_pkce(self, client):
+        # require PKCE for public clients
+        if client['public']:
+            self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
+                                                                                       'code challenge required'))
+            self.code_challenge_method = self.require('code_challenge_method',
+                                                      AuthorizeRequestError('invalid_request',
+                                                                            'code challenge method required'))
+            if self.code_challenge_method != "SHA256":
+                raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
 
     def issue_code(self):
         return crypto.generate_code()
