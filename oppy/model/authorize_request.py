@@ -104,13 +104,19 @@ class AuthorizeRequest:
         return client
 
     def override_redirect_uri(self, client):
+        """
+          If authorization request specifies the redirect uri, validate against whitelisted uris
+          If correct, use it. If not specified, use the first whitelisted one.
+        """
         if 'redirect_uri' in self.parameters:
             self.redirect_uri = self.parameters['redirect_uri']
             if self.redirect_uri not in client['redirect_uris']:
                 raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
 
     def validate_pkce(self, client):
-        # require PKCE for public clients
+        """
+          Verify that PKCE query parameters are present and correct for public clients
+        """
         if client['public']:
             self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
                                                                                        'code challenge required'))
@@ -121,4 +127,5 @@ class AuthorizeRequest:
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
 
     def issue_code(self):
+        "Generate an authorization code for the request"
         return crypto.generate_code()
