@@ -13,7 +13,8 @@
     },
     "cSpell.words": [
         "PKCE",
-        "oppy"
+        "oppy",
+        "pytest"
     ],
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,

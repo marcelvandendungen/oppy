@@ -53,11 +53,6 @@ class AuthorizeRequest:
         if self.parameters.get('scope'):
             self.scope = self.parameters['scope']
 
-        request_info = vars(self).copy()
-        del request_info['parameters']
-
-        authorization_requests.add(request_info)
-
         return self.parameters
 
     def process(self, clients):
@@ -70,17 +65,24 @@ class AuthorizeRequest:
         self.require('username', BadAuthorizeRequestError('invalid_request', 'username not found'))
         self.require('password', BadAuthorizeRequestError('invalid_request', 'password not found'))
 
-        # TODO: verify user credentials
-
         self.override_redirect_uri(client)
         self.validate_pkce(client)
+
+        self.code = self.issue_code()
+
+        user_info = self.verify_user_credentials()
+        request_info = vars(self).copy()
+        del request_info['parameters']
+
+        request_info.update(user_info)
+        authorization_requests.add(request_info)
 
         return self
 
     def redirection_url(self):
         # redirect to redirect_uri with code and state as query parameters
         query_params = {
-            'code': self.issue_code()
+            'code': self.code
         }
 
         if self.parameters.get('state'):
@@ -120,11 +122,18 @@ class AuthorizeRequest:
         if client['public']:
             self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
                                                                                        'code challenge required'))
-            self.code_challenge_method = self.require('code_challenge_method',
-                                                      AuthorizeRequestError('invalid_request',
-                                                                            'code challenge method required'))
-            if self.code_challenge_method != "SHA256":
+            self.code_challenge_method = self.parameters.get('code_challenge_method')
+            if not self.code_challenge_method:
+                self.code_challenge_method = 'plain'
+                                                      
+            if self.code_challenge_method != "S256":
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
+
+    def verify_user_credentials(self):
+        return {
+            'id': 'abcdef',
+            'username': 'mvandend'
+        }
 
     def issue_code(self):
         "Generate an authorization code for the request"

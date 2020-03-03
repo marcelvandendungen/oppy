@@ -3,6 +3,7 @@ import hashlib
 import secrets
 import string
 
+
 AUTH_CODE_LEN = 12  # default length of issues authorization codes
 VERIFIER_LEN = 43   # default length of PKCE code challenge
 
@@ -27,3 +28,9 @@ def generate_challenge(code_verifier):
     m = hashlib.sha256()
     m.update(code_verifier.encode())
     return base64.urlsafe_b64encode(m.digest())
+
+
+def require(parameters, key_name, error):
+    if key_name not in parameters:
+        raise error
+    return parameters[key_name]

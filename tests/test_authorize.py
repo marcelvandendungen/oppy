@@ -4,6 +4,7 @@
 
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, urlsplit, parse_qsl
+from oppy.model.crypto import generate_verifier, generate_challenge
 
 
 def test_missing_client_id_results_in_error(test_client):
@@ -212,15 +213,17 @@ def test_post_to_authorize_issues_code_for_public_client(test_client):
         THEN:   response is 302 Redirect with code and state query parameters
     """
 
+    code_verifier = generate_verifier()
+    code_challenge = generate_challenge(code_verifier)
+
     form_vars = {
         'client_id': 'public_client',
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'test_user',
         'password': 'P@ssW0rd123',
-        'code_challenge': 'abcdef',
-        'code_challenge_method': 'SHA256'
+        'code_challenge': code_challenge, 
+        'code_challenge_method': 'S256'
     }
-
     # make authentication request -> verifies code verifier matches challenge
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302
