@@ -22,6 +22,7 @@ def test_token_endpoint_raises_error_when_required_parameters_missing(test_clien
 
     response = test_client.post('/token', data=form_vars)
     assert response.status_code == 400
+    assert response.data == b'Error occurred: invalid_request - %b parameter is missing' % parameter.encode()
 
 
 def test_token_endpoint_raises_error_for_unsupported_grant_type(test_client):

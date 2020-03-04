@@ -24,12 +24,12 @@ def create_blueprint(clients):
         try:
 
             grant_type = require(request.form, 'grant_type', TokenRequestError('invalid_request', 'grant_type parameter is missing'))
-            client_id = require(request.form, 'client_id', TokenRequestError('invalid_request', 'client_id is missing'))
+            client_id = require(request.form, 'client_id', TokenRequestError('invalid_request', 'client_id parameter is missing'))
 
             if unsupported(grant_type):
                 raise TokenRequestError('invalid_request', 'grant_type not supported')
 
-            auth_code = require(request.form, 'code', TokenRequestError('invalid_request', 'authorization code not found'))
+            auth_code = require(request.form, 'code', TokenRequestError('invalid_request', 'code parameter is missing'))
 
             auth_request = authorization_requests.get(auth_code)
             if auth_request is None:
@@ -50,7 +50,7 @@ def create_blueprint(clients):
             raise TokenRequestError('invalid_request', ex)
         except TokenRequestError as ex:
             logger.error(ex)
-            return "Error occurred: " + str(ex), 400
+            return "Error occurred: " + ' - '.join(ex.args), 400
 
     def unsupported(grant_type):
         return grant_type not in ('authorization_code', )
