@@ -13,7 +13,12 @@
     },
     "cSpell.words": [
         "PKCE",
+        "PKCS",
+        "genrsa",
+        "openssl",
         "oppy",
+        "outform",
+        "pubout",
         "pytest"
     ],
     "python.linting.pylintEnabled": false,

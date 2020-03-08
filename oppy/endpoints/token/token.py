@@ -15,7 +15,7 @@ class TokenRequestError(RuntimeError):
     pass
 
 
-def create_blueprint(clients):
+def create_blueprint(clients, keypair):
     token_bp = Blueprint('token_bp', __name__)
 
     @token_bp.route('/token', methods=["POST"])
@@ -23,8 +23,10 @@ def create_blueprint(clients):
 
         try:
 
-            grant_type = require(request.form, 'grant_type', TokenRequestError('invalid_request', 'grant_type parameter is missing'))
-            client_id = require(request.form, 'client_id', TokenRequestError('invalid_request', 'client_id parameter is missing'))
+            grant_type = require(request.form, 'grant_type', TokenRequestError('invalid_request',
+                                 'grant_type parameter is missing'))
+            client_id = require(request.form, 'client_id', TokenRequestError('invalid_request',
+                                'client_id parameter is missing'))
 
             if unsupported(grant_type):
                 raise TokenRequestError('invalid_request', 'grant_type not supported')
@@ -38,7 +40,7 @@ def create_blueprint(clients):
             if auth_request['client_id'] != client_id:
                 raise TokenRequestError('invalid_request', 'client id mismatch')
 
-            token = generate_token(auth_request)
+            token = generate_token(auth_request, keypair[0])
             logger.info(str(token))
             resp = {
                 'access_token': token.decode("utf-8"),
@@ -55,8 +57,7 @@ def create_blueprint(clients):
     def unsupported(grant_type):
         return grant_type not in ('authorization_code', )
 
-    def generate_token(auth_request):
-        secret = '2d!SXV32Adf40-=2`c'
+    def generate_token(auth_request, private_key):
         now = int(time.time())
         claims = {
             'userid': str(auth_request['id']),
@@ -67,7 +68,7 @@ def create_blueprint(clients):
             'exp': now + 3600
         }
 
-        token = jwt.encode(claims, secret, algorithm='HS256')
+        token = jwt.encode(claims, private_key, algorithm='RS256')
 
         return token
 

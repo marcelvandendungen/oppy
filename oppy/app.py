@@ -18,11 +18,33 @@ clients = [{
 }]
 
 
+def read_pem(filename):
+    with open(filename, "rb") as f1:
+        key = f1.read()
+        return key
+
+
+def init_crypto():
+    """
+      Read private and public key from PEM file on disk
+    """
+    if not os.path.exists("./private.pem"):
+        raise IOError("private.pem not found or no permission to read")
+    private_key = read_pem("./private.pem")
+    if not os.path.exists("./public.pem"):
+        raise IOError("public.pem not found or no permission to read")
+    else:
+        public_key = read_pem("./public.pem")
+
+    return private_key, public_key
+
+
+keypair = init_crypto()
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 app.register_blueprint(create_authorize_bp(clients))
-app.register_blueprint(create_token_blueprint(clients))
+app.register_blueprint(create_token_blueprint(clients, keypair))
 
 
 def main():

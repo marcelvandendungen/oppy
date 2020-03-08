@@ -1,3 +1,4 @@
+import jwt
 import pytest
 from urllib.parse import urlsplit, parse_qsl
 
@@ -96,6 +97,19 @@ def test_token_endpoint_issues_token(test_client):
     }
     response = test_client.post('/token', data=post_data)
     assert response.status_code == 200
+    token = decode_token(response.json['access_token'])
+    assert token['aud'] == 'urn:my_service'
+    assert response.json['expires_in'] == 3600
+    assert response.json['token_type'] == 'Bearer'
+
+
+def decode_token(encoded):
+    with open("./public.pem", "rb") as f:
+        public_key = f.read()
+        print(public_key)
+
+    token = jwt.decode(encoded, public_key, audience='urn:my_service', algorithms='RS256')
+    return token
 
 
 def authenticate_user(test_client):
