@@ -4,6 +4,7 @@ import sys
 from flask import Flask
 from oppy.endpoints.authorize.authorize import create_blueprint as create_authorize_bp
 from oppy.endpoints.token.token import create_blueprint as create_token_blueprint
+from oppy.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
 
 # default test clients
 clients = [{
@@ -45,6 +46,7 @@ app = Flask(__name__)
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 app.register_blueprint(create_authorize_bp(clients))
 app.register_blueprint(create_token_blueprint(clients, keypair))
+app.register_blueprint(create_jwk_blueprint())
 
 
 def main():

@@ -1,5 +1,7 @@
+from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
+from jwcrypto import jwk
 
 import base64
 import hashlib
@@ -40,6 +42,16 @@ def require(parameters, key_name, error):
     return parameters[key_name]
 
 
+def generate_keypair(length=RSA_KEY_LEN):
+    """
+      Generates RSA keypair of at least RSA_KEY_LEN bytes
+    """
+    length = max(length, RSA_KEY_LEN)  # length should be at least 2048 bytes
+    private_key = RSA.generate(length)
+    public_key = private_key.publickey()
+    return private_key, public_key
+
+
 def sign(message, priv_key):
     """
       Signs message with private key and returns the signature
@@ -58,3 +70,13 @@ def verify(message, signature, pub_key):
     digest = SHA256.new()
     digest.update(message)
     return signer.verify(digest, signature)
+
+
+def get_jwk():
+    """
+      Returns public key in JWK (RFC 7517) format
+    """
+    with open("public.pem", "rb") as pemfile:
+        key = jwk.JWK.from_pem(pemfile.read())
+
+    return key.export(private_key=False)
