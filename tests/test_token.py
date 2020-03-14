@@ -101,6 +101,7 @@ def test_token_endpoint_issues_token(test_client):
         response = test_client.post('/token', data=post_data)
 
         assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
         assert response.json['expires_in'] == 3600
         assert response.json['token_type'] == 'Bearer'
         token = decode_token(response.json['access_token'])

@@ -10,7 +10,7 @@ from oppy.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
 clients = [{
     'client_id': 'confidential_client',
     # redirect_uris must be absolute URLs, may contain query params, may not contain fragment
-    'redirect_uris': ['http://localhost:5001/cb'],
+    'redirect_uris': ['http://localhost:5001/cb', 'http://localhost:5003/cb'],
     'public': False
 }, {
     'client_id': 'public_client',

@@ -3,7 +3,7 @@
 """
 
 from bs4 import BeautifulSoup
-from urllib.parse import urlencode, urlsplit, parse_qsl
+from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
 from oppy.model.crypto import generate_verifier, generate_challenge
 
 
@@ -122,9 +122,10 @@ def test_post_to_authorize_issues_code(test_client):
     """
         GIVEN:  POST request to the /authorize endpoint
         WHEN:   all form variables are present and correct
-        THEN:   response is 302 Redirect with code and state query parameters
+        THEN:   response is 302 Redirect to registered redirect_uri with code and state query parameters
     """
 
+    redirect_uri = 'http://localhost:5001/cb'
     form_vars = {
         'client_id': 'confidential_client',
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
@@ -134,9 +135,57 @@ def test_post_to_authorize_issues_code(test_client):
 
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302
+    parsed_uri = urlparse(response.headers['Location'])
+    assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == redirect_uri
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['code']
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+
+
+def test_post_to_authorize_with_whitelisted_redirect_uri_redirects_correctly(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all form variables are present, correct and include whitelisted redirect uri
+        THEN:   response is 302 Redirect to specified redirect_uri with code and state query parameters
+    """
+
+    redirect_uri = 'http://localhost:5003/cb'
+    form_vars = {
+        'client_id': 'confidential_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123',
+        'redirect_uri': redirect_uri
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 302
+    parsed_uri = urlparse(response.headers['Location'])
+    assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == redirect_uri
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['code']
+    assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+
+
+def test_post_to_authorize_with_non_whitelisted_redirect_uri_raises_error(test_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all form variables are present, correct and include whitelisted redirect uri
+        THEN:   response is 302 Redirect to specified redirect_uri with code and state query parameters
+    """
+
+    redirect_uri = 'http://localhost:5004/cb'
+    form_vars = {
+        'client_id': 'confidential_client',
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'test_user',
+        'password': 'P@ssW0rd123',
+        'redirect_uri': redirect_uri
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 400
+    assert response.data == b'Error occurred: Not a registered redirect uri'
 
 
 def test_post_to_authorize_raised_error_if_client_id_is_missing(test_client):
