@@ -7,6 +7,7 @@ import base64
 import hashlib
 import secrets
 import string
+import uuid
 
 
 AUTH_CODE_LEN = 12  # default length of issues authorization codes
@@ -52,6 +53,20 @@ def generate_keypair(length=RSA_KEY_LEN):
     return private_key, public_key
 
 
+def generate_client_id():
+    """
+      Generates UUID for client id
+    """
+    return uuid.uuid4()
+
+
+def generate_client_secret():
+    """
+      Generates base64 encoded bytes of entropy
+    """
+    return base64.b64encode(secrets.token_bytes(32)).decode("utf-8")
+
+
 def sign(message, priv_key):
     """
       Signs message with private key and returns the signature
@@ -76,7 +91,7 @@ def get_jwk():
     """
       Returns public key in JWK (RFC 7517) format
     """
-    with open("public.pem", "rb") as pemfile:
-        key = jwk.JWK.from_pem(pemfile.read())
+    with open("public.pem", "rb") as pem_file:
+        key = jwk.JWK.from_pem(pem_file.read())
 
     return key.export(private_key=False)

@@ -15,6 +15,8 @@
         "PKCE",
         "PKCS",
         "genrsa",
+        "jsonify",
+        "jwcrypto",
         "openssl",
         "oppy",
         "outform",

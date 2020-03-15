@@ -2,8 +2,9 @@ import os
 import sys
 
 from flask import Flask
-from oppy.endpoints.authorize.authorize import create_blueprint as create_authorize_bp
+from oppy.endpoints.authorize.authorize import create_blueprint as create_authorize_blueprint
 from oppy.endpoints.token.token import create_blueprint as create_token_blueprint
+from oppy.endpoints.register.register import create_blueprint as create_register_blueprint
 from oppy.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
 
 # default test clients
@@ -44,8 +45,9 @@ keypair = init_crypto()
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
-app.register_blueprint(create_authorize_bp(clients))
+app.register_blueprint(create_authorize_blueprint(clients))
 app.register_blueprint(create_token_blueprint(clients, keypair))
+app.register_blueprint(create_register_blueprint(clients))
 app.register_blueprint(create_jwk_blueprint())
 
 
