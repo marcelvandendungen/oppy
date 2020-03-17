@@ -33,10 +33,10 @@ class AuthorizeRequest:
             raise error
         return self.parameters[key_name]
 
-    def validate(self, clients):
+    def validate(self, client_store):
         "Handles initial redirect to OP, validates query parameters"
 
-        client = self.lookup_client(clients)
+        client = self.lookup_client(client_store)
 
         self.response_type = self.require('response_type', AuthorizeRequestError('invalid_request',
                                           'response_type parameter is missing'))
@@ -55,11 +55,11 @@ class AuthorizeRequest:
 
         return self.parameters
 
-    def process(self, clients):
+    def process(self, client_store):
         "Handles the credential verification and issues the authorization code"
 
         # client id must identify a registered client
-        client = self.lookup_client(clients)
+        client = self.lookup_client(client_store)
 
         # throw Error if username or password missing
         self.require('username', BadAuthorizeRequestError('invalid_request', 'username not found'))
@@ -90,13 +90,15 @@ class AuthorizeRequest:
 
         return self.redirect_uri + '?' + urlencode(query_params)
 
-    def lookup_client(self, clients):
+    def lookup_client(self, client_store):
         "look up client in registered clients by client id"
 
         # if client id is missing, return bad request response
         self.client_id = self.require('client_id', BadAuthorizeRequestError('invalid_request', 'client_id is missing'))
 
-        client = next((item for item in clients if item['client_id'] == self.client_id), None)
+        client = client_store.get(self.client_id)
+
+        # client = next((item for item in clients if item['client_id'] == self.client_id), None)
         if not client:
             raise BadAuthorizeRequestError('unknown_client', 'Client not registered')
 
@@ -119,13 +121,13 @@ class AuthorizeRequest:
         """
           Verify that PKCE query parameters are present and correct for public clients
         """
-        if client['public']:
+        if is_public(client):
             self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
                                                                                        'code challenge required'))
             self.code_challenge_method = self.parameters.get('code_challenge_method')
             if not self.code_challenge_method:
                 self.code_challenge_method = 'plain'
-                                                      
+
             if self.code_challenge_method != "S256":
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
 
@@ -138,3 +140,7 @@ class AuthorizeRequest:
     def issue_code(self):
         "Generate an authorization code for the request"
         return crypto.generate_code()
+
+
+def is_public(client):
+    return client['token_endpoint_auth_method'] == 'None'

@@ -1,3 +1,4 @@
+from oppy.model.client_store import client_store
 import os
 import sys
 
@@ -6,18 +7,6 @@ from oppy.endpoints.authorize.authorize import create_blueprint as create_author
 from oppy.endpoints.token.token import create_blueprint as create_token_blueprint
 from oppy.endpoints.register.register import create_blueprint as create_register_blueprint
 from oppy.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
-
-# default test clients
-clients = [{
-    'client_id': 'confidential_client',
-    # redirect_uris must be absolute URLs, may contain query params, may not contain fragment
-    'redirect_uris': ['http://localhost:5001/cb', 'http://localhost:5003/cb'],
-    'public': False
-}, {
-    'client_id': 'public_client',
-    'redirect_uris': ['http://localhost:5002/cb'],
-    'public': True
-}]
 
 
 def read_pem(filename):
@@ -45,9 +34,9 @@ keypair = init_crypto()
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
-app.register_blueprint(create_authorize_blueprint(clients))
-app.register_blueprint(create_token_blueprint(clients, keypair))
-app.register_blueprint(create_register_blueprint(clients))
+app.register_blueprint(create_authorize_blueprint(client_store))
+app.register_blueprint(create_token_blueprint(client_store, keypair))
+app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())
 
 

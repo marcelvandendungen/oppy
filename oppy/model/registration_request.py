@@ -28,7 +28,7 @@ class RegistrationRequest:
         self.remove_unsupported('grant_types', 'password')
 
         # generate response parameters
-        self.parameters['client_id'] = crypto.generate_client_id()
+        self.parameters['client_id'] = str(crypto.generate_client_id())
         self.parameters['client_id_issued_at'] = self.epoch()
         # do not generate client_secret for public clients
         if not self.is_public_client():

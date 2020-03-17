@@ -29,5 +29,6 @@
         "--max-line-length=120",
         "--ignore=E402",
     ],
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.pythonPath": "/Users/mvandend/.virtualenvs/oppy/bin/python"
 }
