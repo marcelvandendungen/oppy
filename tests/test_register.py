@@ -14,6 +14,9 @@ def test_register_endpoint_raises_error_when_redirect_uris_missing(test_client):
     }
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response.json['error'] == 'invalid_redirect_uri'
+    assert response.json['error_description']
 
 
 def test_register_endpoint_registers_client_successfully(test_client):

@@ -19,6 +19,10 @@ def create_blueprint(clients):
             return resp, 201
         except RegistrationError as ex:
             logger.error(str(ex))
-            return "Error occurred: " + ' - '.join(ex.args), 400
+            return jsonify({
+                'error': ex.code,
+                'error_description': str(ex)
+            }), 400
+            # return "Error occurred: " + ' - '.join(ex.args), 400
 
     return register_bp

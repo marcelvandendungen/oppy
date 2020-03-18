@@ -5,7 +5,9 @@ from oppy.model import crypto
 
 
 class RegistrationError(Exception):
-    pass
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
 
 
 class RegistrationRequest:
@@ -16,7 +18,9 @@ class RegistrationRequest:
 
         # check mandatory parameter
         if 'redirect_uris' not in parameters:
-            raise RegistrationError('redirect_uris is missing')
+            raise RegistrationError('invalid_redirect_uri', 'redirect_uris is missing')
+
+        # TODO: reject any redirect_uris that have http protocol and hostname other than localhost
 
         # set proper defaults if parameter omitted
         self.ensure_default('response_types', 'code')
