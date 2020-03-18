@@ -143,4 +143,4 @@ class AuthorizeRequest:
 
 
 def is_public(client):
-    return client['token_endpoint_auth_method'] == 'None'
+    return 'token_endpoint_auth_method' in client and client['token_endpoint_auth_method'] == 'None'

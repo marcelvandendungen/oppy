@@ -12,6 +12,7 @@ class ClientStore:
         self._clients['public_client'] = {
             'client_id': 'public_client',
             'redirect_uris': ['http://localhost:5002/cb'],
+            'token_endpoint_auth_method': 'None',
             'public': True
         }
 
