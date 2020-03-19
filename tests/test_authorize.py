@@ -4,7 +4,7 @@
 
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
-from oppy.model.crypto import generate_verifier, generate_challenge
+from provider.model.crypto import generate_verifier, generate_challenge
 
 
 def test_missing_client_id_results_in_error(test_client):

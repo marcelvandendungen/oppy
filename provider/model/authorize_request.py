@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
-from oppy.model import crypto
-from oppy.model.authorization_request_store import authorization_requests
+from provider.model import crypto
+from provider.model.authorization_request_store import authorization_requests
 
 
 class BadAuthorizeRequestError(RuntimeError):

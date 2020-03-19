@@ -1,8 +1,8 @@
 import logging
+from urllib.parse import urlencode
 
 from flask import Blueprint, request, make_response, render_template, redirect
-from oppy.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
-from urllib.parse import urlencode
+from provider.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
 
 logger = logging.getLogger('authorize')
 logger.setLevel(logging.INFO)

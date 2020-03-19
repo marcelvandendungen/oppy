@@ -1,7 +1,7 @@
 import time
 
-from oppy.model.client_store import client_store
-from oppy.model import crypto
+from provider.model.client_store import client_store
+from provider.model import crypto
 
 
 class RegistrationError(Exception):

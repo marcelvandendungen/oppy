@@ -2,8 +2,8 @@ import time
 import jwt
 import logging
 from flask import Blueprint, request
-from oppy.model.authorization_request_store import authorization_requests
-from oppy.model.crypto import require
+from provider.model.authorization_request_store import authorization_requests
+from provider.model.crypto import require
 
 
 logger = logging.getLogger('token')

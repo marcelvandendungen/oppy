@@ -1,4 +1,4 @@
-from oppy.app import app
+from provider.app import app
 
 import pytest
 

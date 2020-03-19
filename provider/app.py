@@ -1,12 +1,12 @@
-from oppy.model.client_store import client_store
 import os
 import sys
 
 from flask import Flask
-from oppy.endpoints.authorize.authorize import create_blueprint as create_authorize_blueprint
-from oppy.endpoints.token.token import create_blueprint as create_token_blueprint
-from oppy.endpoints.register.register import create_blueprint as create_register_blueprint
-from oppy.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
+from provider.endpoints.authorize.authorize import create_blueprint as create_authorize_blueprint
+from provider.endpoints.token.token import create_blueprint as create_token_blueprint
+from provider.endpoints.register.register import create_blueprint as create_register_blueprint
+from provider.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
+from provider.model.client_store import client_store
 
 
 def read_pem(filename):

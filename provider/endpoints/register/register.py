@@ -1,5 +1,5 @@
-from oppy.model.registration_request import RegistrationRequest, RegistrationError
-from oppy.model.util import init_logging
+from provider.model.registration_request import RegistrationRequest, RegistrationError
+from provider.model.util import init_logging
 
 from flask import Blueprint, request, jsonify, make_response
 
