@@ -13,10 +13,14 @@ This application is just a playground for me to explore identity protocols. This
 $ cd oppy
 $ openssl genrsa -out private.pem 2048
 $ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
-$ export FLASK_APP=oppy/app.py
+$ export FLASK_APP=provider/app.py
 $ export FLASK_ENV=development
 $ export FLASK_DEBUG=1
 $ python -m flask run
+# OR
+$ python -m provider
+# OR
+$ python -m resource_server
 ```
 
 ## Run test instructions
