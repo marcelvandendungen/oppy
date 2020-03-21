@@ -1,24 +1,10 @@
-from functools import wraps
-
 import jwt
 import os
 import sys
 
+from resource_server.authorize import authorize, AuthorizeError
+
 from flask import Flask, request
-
-
-def authorize(audience, scopes):
-    def decorator(func):
-        @wraps(func)
-        def decorated(*args, **kwargs):
-            auth_header = request.headers['Authorization']
-            assert auth_header.startswith('Bearer ')
-            claims = jwt.decode(str.encode(auth_header[7:]), public_key,
-                                audience=audience, algorithm=['RS256'])
-            request.view_args['claims'] = claims
-            return func(*args, **kwargs)
-        return decorated
-    return decorator
 
 
 app = Flask(__name__)
@@ -27,22 +13,13 @@ app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 
 @app.errorhandler(Exception)
 def error_handler(ex):
-    if isinstance(ex, jwt.ExpiredSignatureError):
-        return 'JWT is expired', 401
+    if isinstance(ex, (jwt.ExpiredSignatureError, jwt.DecodeError, AuthorizeError)):
+        return str(ex), 401
     return str(ex), 500
 
 
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
 app.register_error_handler(Exception, error_handler)
-
-
-def read_pem(filename):
-    with open(filename, "rb") as f1:
-        key = f1.read()
-        return key
-
-
-public_key = read_pem("./public.pem")
 
 
 @app.route('/resource')
