@@ -25,6 +25,17 @@ app = Flask(__name__)
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 
 
+@app.errorhandler(Exception)
+def error_handler(ex):
+    if isinstance(ex, jwt.ExpiredSignatureError):
+        return 'JWT is expired', 401
+    return str(ex), 500
+
+
+app.config['TRAP_HTTP_EXCEPTIONS'] = True
+app.register_error_handler(Exception, error_handler)
+
+
 def read_pem(filename):
     with open(filename, "rb") as f1:
         key = f1.read()
