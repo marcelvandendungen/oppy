@@ -1,9 +1,24 @@
-from base64 import encode
+from functools import wraps
+
 import jwt
 import os
 import sys
 
 from flask import Flask, request
+
+
+def authorize(audience, scopes):
+    def decorator(func):
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            auth_header = request.headers['Authorization']
+            assert auth_header.startswith('Bearer ')
+            claims = jwt.decode(str.encode(auth_header[7:]), public_key,
+                                audience=audience, algorithm=['RS256'])
+            request.view_args['claims'] = claims
+            return func(*args, **kwargs)
+        return decorated
+    return decorator
 
 
 app = Flask(__name__)
@@ -20,18 +35,13 @@ public_key = read_pem("./public.pem")
 
 
 @app.route('/resource')
+@authorize(audience='urn:my_service', scopes='read')    # must be innermost decorator
 def resource():
     try:
-        auth_header = request.headers['Authorization']
-        user = validate(auth_header[7:], audience='urn:my_service', scopes='read')
-        return str(user)
+        claims = request.view_args['claims']
+        return str(claims)
     except KeyError as ex:
         return str(ex)
-
-
-def validate(token, audience, scopes):
-    claims = jwt.decode(str.encode(token), public_key, audience=audience, algorithm=['RS256'])
-    return claims['userid']
 
 
 def main():
