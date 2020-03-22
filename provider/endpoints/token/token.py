@@ -65,7 +65,8 @@ def create_blueprint(clients, keypair):
             'aud': 'urn:my_service',
             'iat': now,
             'nbf': now,
-            'exp': now + 3600
+            'exp': now + 3600,
+            'scope': 'read write'
         }
 
         token = jwt.encode(claims, private_key, algorithm='RS256')

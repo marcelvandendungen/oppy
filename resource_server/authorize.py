@@ -1,15 +1,17 @@
 import jwt
+import requests
 from functools import wraps
 from flask import request
+from jwcrypto import jwk
 
 
-def read_pem(filename):
-    with open(filename, "rb") as f1:
-        key = f1.read()
-        return key
+def get_public_key(url):
+    response = requests.get(url)
+    key = jwk.JWK.from_json(response.content)
+    return key.export_to_pem()
 
 
-public_key = read_pem("./public.pem")
+public_key = get_public_key('http://localhost:5000/jwk')
 
 
 class AuthorizeError(Exception):
@@ -30,8 +32,8 @@ def validate_auth_header(headers, audience, scopes):
     claims = jwt.decode(str.encode(token), public_key,
                         audience=audience, algorithm=['RS256'])
 
-    required_scopes = {scopes.split(' ')}
-    granted_scopes = {claims['scope'].split(' ')}
+    required_scopes = set(scopes.split(' '))
+    granted_scopes = set(claims['scope'].split(' '))
 
     if not required_scopes.issubset(granted_scopes):
         raise AuthorizeError('required scope missing', 401)
