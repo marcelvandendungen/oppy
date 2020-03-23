@@ -1,11 +1,13 @@
 import os
 import sys
+import yaml
 
 from flask import Flask
 from provider.endpoints.authorize.authorize import create_blueprint as create_authorize_blueprint
 from provider.endpoints.token.token import create_blueprint as create_token_blueprint
 from provider.endpoints.register.register import create_blueprint as create_register_blueprint
 from provider.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
+from provider.endpoints.metadata.metadata import create_blueprint as create_metadata_blueprint
 from provider.model.client_store import client_store
 
 
@@ -30,6 +32,8 @@ def init_crypto():
     return private_key, public_key
 
 
+config = yaml.load(open('provider/config/config.yml', 'r'), Loader=yaml.FullLoader)
+
 keypair = init_crypto()
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
@@ -38,11 +42,13 @@ app.register_blueprint(create_authorize_blueprint(client_store))
 app.register_blueprint(create_token_blueprint(client_store, keypair))
 app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())
+app.register_blueprint(create_metadata_blueprint(config))
 
 
 def main():
     print('running main')
-    app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'])
+    app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'],
+            ssl_context=('cert.pem', 'key.pem'))
 
 
 if __name__ == "__main__":

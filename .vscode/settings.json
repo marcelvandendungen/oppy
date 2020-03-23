@@ -18,11 +18,13 @@
         "issubset",
         "jsonify",
         "jwcrypto",
+        "jwks",
         "openssl",
         "oppy",
         "outform",
         "pubout",
-        "pytest"
+        "pytest",
+        "userinfo"
     ],
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,

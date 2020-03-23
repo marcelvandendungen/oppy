@@ -60,8 +60,9 @@ def create_blueprint(clients, keypair):
     def generate_token(auth_request, private_key):
         now = int(time.time())
         claims = {
-            'userid': str(auth_request['id']),
             'username': auth_request['username'],
+            'sub': str(auth_request['id']),
+            'iss': 'http://localhost:5000',
             'aud': 'urn:my_service',
             'iat': now,
             'nbf': now,

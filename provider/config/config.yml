@@ -1,0 +1,27 @@
+endpoints:
+    issuer: https://localhost:5000
+    authorize: /authorize
+    token: /token
+    userinfo: /userinfo
+    jwks: /jwk
+    registration: /register
+
+capabilities:
+    scopes_supported: 
+        - openid
+        - read
+        - write
+    response_types_supported:
+        - code
+        - code id_token
+    grant_types_supported:
+        - authorization_code
+    claims_supported:
+        - username
+        - sub
+        - iss
+        - aud
+        - iat
+        - nbf
+        - exp
+        - scope
