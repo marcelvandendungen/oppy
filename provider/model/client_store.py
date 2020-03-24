@@ -6,12 +6,12 @@ class ClientStore:
         self._clients['confidential_client'] = {
             'client_id': 'confidential_client',
             # redirect_uris must be absolute URLs, may contain query params, may not contain fragment
-            'redirect_uris': ['http://localhost:5001/cb', 'http://localhost:5003/cb'],
+            'redirect_uris': ['https://localhost:5001/cb', 'https://localhost:5003/cb'],
             'public': False
         }
         self._clients['public_client'] = {
             'client_id': 'public_client',
-            'redirect_uris': ['http://localhost:5002/cb'],
+            'redirect_uris': ['https://localhost:5002/cb'],
             'token_endpoint_auth_method': 'None',
             'public': True
         }

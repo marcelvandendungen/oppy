@@ -46,7 +46,7 @@ def test_missing_response_type_results_in_redirect(test_client):
         WHEN:   response_type query parameter is missing
         THEN:   response is 302 Redirect with error query parameter
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='https://localhost:5001/cb',
                      state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
@@ -61,7 +61,7 @@ def test_unsupported_response_type_results_in_redirect(test_client):
         THEN:   response is 302 Redirect with error query parameter
     """
     url = create_url('/authorize', client_id='confidential_client', response_type='token',
-                     redirect_uri='http://localhost:5001/cb', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
+                     redirect_uri='https://localhost:5001/cb', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
@@ -74,14 +74,14 @@ def test_query_parameters_are_reflected_in_response(test_client):
         WHEN:   query parameters are specified
         THEN:   response is 200 OK with parameters as hidden input fields in the HTML
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='https://localhost:5001/cb',
                      response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
 
     assert response.status_code == 200
     assert soup.find('input', dict(name='client_id'))['value'] == 'confidential_client'
-    assert soup.find('input', dict(name='redirect_uri'))['value'] == 'http://localhost:5001/cb'
+    assert soup.find('input', dict(name='redirect_uri'))['value'] == 'https://localhost:5001/cb'
     assert soup.find('input', dict(name='state'))['value'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
     assert soup.find('input', dict(name='scope'))['value'] == 'scope1 scope2'
 
@@ -92,7 +92,7 @@ def test_missing_query_parameters_not_reflected_in_response(test_client):
         WHEN:   query parameters are specified, but no 'state' or 'nonce' query parameters
         THEN:   response is 200 OK and no hidden input fields with name 'state' or 'nonce' in the HTML
     """
-    url = create_url('/authorize', client_id='confidential_client', redirect_uri='http://localhost:5001/cb',
+    url = create_url('/authorize', client_id='confidential_client', redirect_uri='https://localhost:5001/cb',
                      response_type='code')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
@@ -109,7 +109,7 @@ def test_confidential_client_without_code_challenge_results_in_error(test_client
         WHEN:   client_id identifies a public client and code_challenge query parameter is missing
         THEN:   response is 302 Redirect with error query parameter (PKCE required for public clients)
     """
-    url = create_url('/authorize', client_id='public_client', redirect_uri='http://localhost:5002/cb',
+    url = create_url('/authorize', client_id='public_client', redirect_uri='https://localhost:5002/cb',
                      response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35')
     response = test_client.get(url)
     assert response.status_code == 302
@@ -125,7 +125,7 @@ def test_post_to_authorize_issues_code(test_client):
         THEN:   response is 302 Redirect to registered redirect_uri with code and state query parameters
     """
 
-    redirect_uri = 'http://localhost:5001/cb'
+    redirect_uri = 'https://localhost:5001/cb'
     form_vars = {
         'client_id': 'confidential_client',
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
@@ -149,7 +149,7 @@ def test_post_to_authorize_with_whitelisted_redirect_uri_redirects_correctly(tes
         THEN:   response is 302 Redirect to specified redirect_uri with code and state query parameters
     """
 
-    redirect_uri = 'http://localhost:5003/cb'
+    redirect_uri = 'https://localhost:5003/cb'
     form_vars = {
         'client_id': 'confidential_client',
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
@@ -174,7 +174,7 @@ def test_post_to_authorize_with_non_whitelisted_redirect_uri_raises_error(test_c
         THEN:   response is 302 Redirect to specified redirect_uri with code and state query parameters
     """
 
-    redirect_uri = 'http://localhost:5004/cb'
+    redirect_uri = 'https://localhost:5004/cb'
     form_vars = {
         'client_id': 'confidential_client',
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',

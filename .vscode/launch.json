@@ -10,14 +10,17 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "provider/app.py",
+                "FLASK_APP": "webclient/app.py",
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "1"
             },
             "args": [
                 "run",
                 "--no-debugger",
-                "--no-reload"
+                "--no-reload",
+                "-p 5001",
+                "--cert=cert.pem",
+                "--key=key.pem"
             ],
             "jinja": true
             // "justMyCode":false

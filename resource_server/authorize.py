@@ -1,3 +1,4 @@
+from provider.model.crypto import verify
 import jwt
 import requests
 from functools import wraps
@@ -6,12 +7,12 @@ from jwcrypto import jwk
 
 
 def get_public_key(url):
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     key = jwk.JWK.from_json(response.content)
     return key.export_to_pem()
 
 
-public_key = get_public_key('http://localhost:5000/jwk')
+public_key = get_public_key('https://localhost:5000/jwk')
 
 
 class AuthorizeError(Exception):
