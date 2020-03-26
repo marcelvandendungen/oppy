@@ -4,7 +4,7 @@ import sys
 
 from resource_server.authorize import authorize, AuthorizeError
 
-from flask import Flask, request
+from flask import Flask, request, make_response, jsonify
 
 
 app = Flask(__name__)
@@ -27,7 +27,9 @@ app.register_error_handler(Exception, error_handler)
 def resource():
     try:
         claims = request.view_args['claims']
-        return str(claims)
+        resp = make_response(jsonify(claims))
+        resp.headers['Content-Type'] = 'application/json'
+        return resp, 200
     except KeyError as ex:
         return str(ex)
 

@@ -1,1 +1,29 @@
-<h1>index.html</h1>
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div id="layout">
+        <div class="content">
+            <h1>Claims info</h1>            
+            <table>
+                <thead>
+                    <th>key</th>
+                    <th>value</th>
+                </thead>
+                <tbody>
+                    {% for claim in token %}
+                    <tr>
+                        <td>{{claim}}</td><td>{{token[claim]}}</td>
+                    </tr>
+                    {% endfor %}    
+                </tbody>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>

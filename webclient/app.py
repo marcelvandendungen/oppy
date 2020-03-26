@@ -24,22 +24,20 @@ public_key = get_public_key('https://localhost:5000/jwk')
 
 @app.route("/")
 def index():
-    # check if token cookie set
     cookie = request.cookies.get('token')
     if cookie:
         logger.info('cookie: ' + cookie)
-        return get_resource(cookie)
+        response = requests.get('https://localhost:5002/resource', 
+                                headers={'Authorization': 'Bearer ' + cookie},
+                                verify=False)
+        if response.status_code != 200:
+            logger.warn("Response from resource server: " + response.status_code)
+
+        return render_template('index.html', token=response.json())
 
     return redirect(authorize_request('https://localhost:5000/authorize', client_id='confidential_client',
                     redirect_uri='https://localhost:5001/cb', response_type='code',
                     state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2'))
-
-
-def get_resource(token):
-    response = requests.get('https://localhost:5002/resource', 
-                            headers={'Authorization': 'Bearer ' + token},
-                            verify=False)
-    return response.content
 
 
 def authorize_request(url, **query_params):
