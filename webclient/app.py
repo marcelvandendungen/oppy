@@ -31,9 +31,9 @@ def index():
                                 headers={'Authorization': 'Bearer ' + cookie},
                                 verify=False)
         if response.status_code != 200:
-            logger.warn("Response from resource server: " + response.status_code)
-
-        return render_template('index.html', token=response.json())
+            logger.warn("Response from resource server: " + str(response.status_code))
+        else:
+            return render_template('index.html', token=response.json())
 
     return redirect(authorize_request('https://localhost:5000/authorize', client_id='confidential_client',
                     redirect_uri='https://localhost:5001/cb', response_type='code',

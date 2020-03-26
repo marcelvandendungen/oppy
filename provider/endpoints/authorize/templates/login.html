@@ -1,37 +1,48 @@
 <html>
 
+<head>
+    <link rel="stylesheet" href="{{ url_for('authorize_bp.static', filename='style.css') }}">
+</head>
+
 <body>
-    <form method="POST" action="/authorize">
 
-        <div>
-            <label for="username" title="username">user name:
-                <input type="text" name="username">
-            </label>
-        </div>
-        <label for="password" title="password">password:
-            <input type="text" name="password">
-        </label>
+    <div id="layout">
+        <div class="content">
 
-        <div>
-            <input type="submit" value="Submit">
+            <form method="POST" action="/authorize">
+
+                <div>
+                    <label for="username" title="username">user name:
+                        <input type="text" name="username">
+                    </label>
+                </div>
+                <label for="password" title="password">password:
+                    <input type="text" name="password">
+                </label>
+
+                <div>
+                    <input type="submit" value="Submit">
+                </div>
+                <input type="hidden" name="client_id" value="{{req.client_id}}">
+                {% if 'state' in req %}
+                <input type="hidden" name="state" value="{{req.state}}">
+                {% endif %}
+                {% if 'nonce' in req %}
+                <input type="hidden" name="nonce" value="{{req.nonce}}">
+                {% endif %}
+                {% if 'scope' in req %}
+                <input type="hidden" name="scope" value="{{req.scope}}">
+                {% endif %}
+                {% if 'code_challenge' in req %}
+                <input type="hidden" name="code_challenge" value="{{req.code_challenge}}">
+                {% endif %}
+                {% if 'code_challenge_method' in req %}
+                <input type="hidden" name="code_challenge_method" value="{{req.code_challenge_method}}">
+                {% endif %}
+                <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
+            </form>
         </div>
-        <input type="hidden" name="client_id" value="{{req.client_id}}">
-        {% if 'state' in req %}
-        <input type="hidden" name="state" value="{{req.state}}">
-        {% endif %}
-        {% if 'nonce' in req %}
-        <input type="hidden" name="nonce" value="{{req.nonce}}">
-        {% endif %}
-        {% if 'scope' in req %}
-        <input type="hidden" name="scope" value="{{req.scope}}">
-        {% endif %}
-        {% if 'code_challenge' in req %}
-        <input type="hidden" name="code_challenge" value="{{req.code_challenge}}">
-        {% endif %}
-        {% if 'code_challenge_method' in req %}
-        <input type="hidden" name="code_challenge_method" value="{{req.code_challenge_method}}">
-        {% endif %}
-        <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
-    </form>
+    </div>
 </body>
+
 </html>

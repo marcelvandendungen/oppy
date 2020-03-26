@@ -10,7 +10,8 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
 def create_blueprint(client_store):
-    authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates')
+    authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates',
+                             static_folder='static', static_url_path='/static')
 
     @authorize_bp.route('/authorize', methods=["GET", "POST"])
     def authorize():
