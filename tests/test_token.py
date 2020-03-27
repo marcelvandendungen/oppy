@@ -24,7 +24,8 @@ def test_token_endpoint_raises_error_when_required_parameters_missing(test_clien
 
     response = test_client.post('/token', data=form_vars)
     assert response.status_code == 400
-    assert response.data == b'Error occurred: invalid_request - %b parameter is missing' % parameter.encode()
+    assert response.json['error'] == 'invalid_request'
+    assert response.json['error_description'] == '%s parameter is missing' % parameter
 
 
 def test_token_endpoint_raises_error_for_unsupported_grant_type(test_client):
@@ -109,6 +110,68 @@ def test_token_endpoint_issues_token(test_client):
         assert token['iat'] == 1584187200
         assert token['nbf'] == 1584187200
         assert token['exp'] == 1584190800
+        assert response.json['refresh_token']
+
+
+def test_token_refresh(test_client):
+    """
+        GIVEN:  POST refresh_token request to the /token endpoint
+        WHEN:   all required form variables are present and correct
+        THEN:   response is 200 OK with new access token in the JSON payload
+    """
+    code, _ = authenticate_user(test_client)
+
+    post_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': 'confidential_client'
+    }
+
+    # get the initial refresh_token
+    with freezegun.freeze_time("2020-03-14 12:00:00"):
+        response = test_client.post('/token', data=post_data)
+
+        assert response.status_code == 200
+        refresh_token = response.json['refresh_token']
+
+    post_data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token
+    }
+    # use refresh token to get new access_token
+    with freezegun.freeze_time("2020-03-14 13:01:00"):
+        response = test_client.post('/token', data=post_data)
+
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        assert response.json['expires_in'] == 3600
+        assert response.json['token_type'] == 'Bearer'
+        token = decode_token(response.json['access_token'])
+        assert token['aud'] == 'urn:my_service'
+        assert token['iat'] == 1584190860
+        assert token['nbf'] == 1584190860
+        assert token['exp'] == 1584194460
+        assert response.json['refresh_token']
+
+
+def test_token_refresh_invalid(test_client):
+    """
+        GIVEN:  POST refresh_token request to the /token endpoint
+        WHEN:   the refresh token is present but not correct
+        THEN:   response is 400 Bad Request
+    """
+
+    post_data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': "invalid_refresh_token"
+    }
+    # use invalid refresh token to get new access_token
+    with freezegun.freeze_time("2020-03-14 13:01:00"):
+        response = test_client.post('/token', data=post_data)
+        assert response.status_code == 400
+        assert response.headers['Content-Type'] == 'application/json'
+        assert response.json['error'] == 'invalid_grant'
+        assert response.json['error_description'] == 'unknown refresh token'
 
 
 def decode_token(encoded):

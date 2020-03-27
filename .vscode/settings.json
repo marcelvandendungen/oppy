@@ -24,7 +24,8 @@
         "outform",
         "pubout",
         "pytest",
-        "userinfo"
+        "userinfo",
+        "vschar"
     ],
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
