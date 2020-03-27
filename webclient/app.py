@@ -1,4 +1,3 @@
-import jwt
 import logging
 import requests
 import sys
@@ -27,7 +26,7 @@ def index():
     cookie = request.cookies.get('token')
     if cookie:
         logger.info('cookie: ' + cookie)
-        response = requests.get('https://localhost:5002/resource', 
+        response = requests.get('https://localhost:5002/resource',
                                 headers={'Authorization': 'Bearer ' + cookie},
                                 verify=False)
         if response.status_code != 200:

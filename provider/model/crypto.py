@@ -18,6 +18,7 @@ DIGIT = string.digits
 ALPHA = string.ascii_letters
 alphabet = ALPHA + DIGIT
 unreserved = alphabet + "-._~"
+VSCHAR = [chr(i) for i in range(ord('\x20'), ord('\x7E'))]
 
 
 def generate_code(length=AUTH_CODE_LEN):
@@ -65,6 +66,11 @@ def generate_client_secret():
       Generates base64 encoded bytes of entropy
     """
     return base64.b64encode(secrets.token_bytes(32)).decode("utf-8")
+
+
+def generate_refresh_token(length=32):
+    token = ''.join(secrets.choice(VSCHAR) for i in range(length))
+    return token
 
 
 def sign(message, priv_key):

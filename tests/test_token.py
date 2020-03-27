@@ -109,6 +109,7 @@ def test_token_endpoint_issues_token(test_client):
         assert token['iat'] == 1584187200
         assert token['nbf'] == 1584187200
         assert token['exp'] == 1584190800
+        assert response.json['refresh_token']
 
 
 def decode_token(encoded):
