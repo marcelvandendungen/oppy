@@ -1,5 +1,4 @@
 import logging
-from provider.endpoints.token.token import TokenRequestError
 import requests
 import sys
 from jwcrypto import jwk
