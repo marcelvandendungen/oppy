@@ -5,18 +5,20 @@ from urllib.parse import urlsplit, parse_qsl
 
 
 @pytest.mark.parametrize(('parameter'), ('grant_type', 'client_id', 'code'))
-def test_token_endpoint_raises_error_when_required_parameters_missing(test_client, parameter):
+def test_token_endpoint_raises_error_when_required_parameters_missing(test_client, parameter,
+                                                                      confidential_client):
     """
         GIVEN:  POST request to the /token endpoint
         WHEN:   a required parameter is missing
         THEN:   response is 400 Bad Request
     """
 
-    code, _ = authenticate_user(test_client)
+    code, _ = authenticate_user(test_client, confidential_client)
 
+    client_id = confidential_client['client_id']
     form_vars = {
         'grant_type': 'authorization_code',
-        'client_id': 'confidential_client',
+        'client_id': client_id,
         'code': code,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
     }
@@ -43,31 +45,33 @@ def test_token_endpoint_raises_error_for_unsupported_grant_type(test_client):
     assert response.status_code == 400
 
 
-def test_token_endpoint_raises_error_when_authorization_request_not_found(test_client):
+def test_token_endpoint_raises_error_when_authorization_request_not_found(test_client, confidential_client):
     """
         GIVEN:  POST request to the /token endpoint
         WHEN:   all form variables are present and correct, but client id does not identify registered client
         THEN:   response is 400 Bad Request
     """
 
+    client_id = confidential_client['client_id']
     post_data = {
         'grant_type': 'authorization_code',
         'code': 'unknown',
-        'client_id': 'confidential_client'
+        'client_id': client_id
     }
     response = test_client.post('/token', data=post_data)
     assert response.status_code == 400
 
 
-def test_token_endpoint_raises_error_for_unknown_client(test_client):
+def test_token_endpoint_raises_error_for_unknown_client(test_client, confidential_client):
     """
         GIVEN:  POST request to the /token endpoint
         WHEN:   all form variables are present and correct, but client id does not identify registered client
         THEN:   response is 400 Bad Request
     """
 
+    client_id = confidential_client['client_id']
     form_vars = {
-        'client_id': 'confidential_client',
+        'client_id': client_id,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'test_user',
         'password': 'P@ssW0rd123'
@@ -83,19 +87,20 @@ def test_token_endpoint_raises_error_for_unknown_client(test_client):
     assert response.status_code == 400
 
 
-def test_token_endpoint_issues_token(test_client):
+def test_token_endpoint_issues_token(test_client, confidential_client):
     """
         GIVEN:  POST request to the /token endpoint
         WHEN:   all form variables are present and correct
         THEN:   response is 200 OK with access token in the JSON payload
     """
 
-    code, _ = authenticate_user(test_client)
+    code, _ = authenticate_user(test_client, confidential_client)
 
+    client_id = confidential_client['client_id']
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': 'confidential_client'
+        'client_id': client_id
     }
 
     with freezegun.freeze_time("2020-03-14 12:00:00"):
@@ -113,7 +118,7 @@ def test_token_endpoint_issues_token(test_client):
         assert response.json['refresh_token']
 
 
-def test_token_endpoint_fails_on_expired_code(test_client):
+def test_token_endpoint_fails_on_expired_code(test_client, confidential_client):
     """
         GIVEN:  POST request to the /token endpoint
         WHEN:   all form variables are present but authorization code is old
@@ -121,12 +126,13 @@ def test_token_endpoint_fails_on_expired_code(test_client):
     """
 
     with freezegun.freeze_time("2020-03-14 12:00:00"):
-        code, _ = authenticate_user(test_client)
+        code, _ = authenticate_user(test_client, confidential_client)
 
+    client_id = confidential_client['client_id']
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': 'confidential_client'
+        'client_id': client_id
     }
 
     with freezegun.freeze_time("2020-03-14 12:06:00"):
@@ -137,18 +143,19 @@ def test_token_endpoint_fails_on_expired_code(test_client):
         assert response.json['error_description'] == 'auth code is expired'
 
 
-def test_token_refresh(test_client):
+def test_token_refresh(test_client, confidential_client):
     """
         GIVEN:  POST refresh_token request to the /token endpoint
         WHEN:   all required form variables are present and correct
         THEN:   response is 200 OK with new access token in the JSON payload
     """
-    code, _ = authenticate_user(test_client)
+    code, _ = authenticate_user(test_client, confidential_client)
 
+    client_id = confidential_client['client_id']
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': 'confidential_client'
+        'client_id': client_id
     }
 
     # get the initial refresh_token
@@ -207,13 +214,14 @@ def decode_token(encoded):
     return token
 
 
-def authenticate_user(test_client):
+def authenticate_user(test_client, client):
     """
       POST to the authorize endpoint to authenticate the user and generate an authorization code
     """
 
+    client_id = client['client_id']
     form_vars = {
-        'client_id': 'confidential_client',
+        'client_id': client_id,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'test_user',
         'password': 'P@ssW0rd123'

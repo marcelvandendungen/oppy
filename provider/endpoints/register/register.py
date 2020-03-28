@@ -14,7 +14,9 @@ def create_blueprint(clients):
         try:
             registration_request = RegistrationRequest.from_dictionary(request.json)
 
-            resp = make_response(jsonify(registration_request.client))
+            payload = jsonify(registration_request.client)
+            logger.info(str(registration_request.client))
+            resp = make_response(payload)
             resp.headers['Content-Type'] = 'application/json'
             return resp, 201
         except RegistrationError as ex:

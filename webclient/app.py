@@ -1,5 +1,7 @@
 import logging
+from tests.conftest import confidential_client
 import requests
+import os
 import sys
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
@@ -21,6 +23,8 @@ def get_public_key(url):
 
 
 public_key = get_public_key('https://localhost:5000/jwk')
+client_id = os.environ['CONFIDENTIAL_CLIENT_ID']
+logger.info('client_id: ' + client_id)
 
 
 @app.route("/")
@@ -44,7 +48,8 @@ def index():
         else:
             logger.warn("Response from resource server: " + str(response.status_code))
 
-    return redirect(authorize_request('https://localhost:5000/authorize', client_id='confidential_client',
+    # client id should be set in the environment
+    return redirect(authorize_request('https://localhost:5000/authorize', client_id=client_id,
                     redirect_uri='https://localhost:5001/cb', response_type='code',
                     state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2'))
 
@@ -77,7 +82,7 @@ def get_token(auth_code):
     data = {"grant_type": "authorization_code",
             "code": auth_code,
             "redirect_uri": quote(redirect_url),
-            "client_id": "confidential_client"}
+            "client_id": client_id}
 
     response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
 
