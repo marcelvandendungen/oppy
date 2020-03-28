@@ -113,6 +113,30 @@ def test_token_endpoint_issues_token(test_client):
         assert response.json['refresh_token']
 
 
+def test_token_endpoint_fails_on_expired_code(test_client):
+    """
+        GIVEN:  POST request to the /token endpoint
+        WHEN:   all form variables are present but authorization code is old
+        THEN:   response is 400 Bad Request
+    """
+
+    with freezegun.freeze_time("2020-03-14 12:00:00"):
+        code, _ = authenticate_user(test_client)
+
+    post_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': 'confidential_client'
+    }
+
+    with freezegun.freeze_time("2020-03-14 12:06:00"):
+        response = test_client.post('/token', data=post_data)
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'invalid_request'
+        assert response.json['error_description'] == 'auth code is expired'
+
+
 def test_token_refresh(test_client):
     """
         GIVEN:  POST refresh_token request to the /token endpoint

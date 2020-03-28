@@ -1,3 +1,4 @@
+import time
 from urllib.parse import urlencode
 from provider.model import crypto
 from provider.model.authorization_request_store import authorization_requests
@@ -73,6 +74,8 @@ class AuthorizeRequest:
         user_info = self.verify_user_credentials()
         request_info = vars(self).copy()
         del request_info['parameters']
+
+        request_info['issued_at'] = int(time.time())
 
         request_info.update(user_info)
         authorization_requests.add(request_info)

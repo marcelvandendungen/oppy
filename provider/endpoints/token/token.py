@@ -8,6 +8,7 @@ from provider.model import crypto
 
 
 WEEK = 7 * 24 * 60 * 60
+FIVEMINUTES = 5 * 60
 
 logger = logging.getLogger('token')
 logger.setLevel(logging.INFO)
@@ -55,6 +56,9 @@ def create_blueprint(client_store, keypair):
                 if auth_request['client_id'] != client_id:
                     raise TokenRequestError('invalid_request', 'client id mismatch')
 
+                if is_expired(auth_request):
+                    raise TokenRequestError('invalid_request', 'auth code is expired')
+
                 user_info = auth_request
 
             token = generate_token(user_info, keypair[0])
@@ -88,6 +92,10 @@ def create_blueprint(client_store, keypair):
 
     def unsupported(grant_type):
         return grant_type not in ('authorization_code', 'refresh_token')
+
+    def is_expired(auth_request):
+        now = int(time.time())
+        return now > int(auth_request['issued_at']) + FIVEMINUTES
 
     def generate_token(auth_request, private_key):
         now = int(time.time())
