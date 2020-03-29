@@ -40,7 +40,7 @@ def create_blueprint(client_store, keypair):
                 user_info, client = verify_refresh_token(client_store)
                 client_id = user_info['client_id']
             elif grant_type == 'client_credentials':
-                client_id, _ = extract_basic_credentials()
+                client_id, _ = extract_credentials()
                 client = client_store.get(client_id)
                 if not client:
                     raise TokenRequestError('invalid_request', 'unknown client')
@@ -49,27 +49,9 @@ def create_blueprint(client_store, keypair):
                     'id': client_id
                 }
             else:
-                client_id = require(request.form, 'client_id', TokenRequestError('invalid_request',
-                                    'client_id parameter is missing'))
-                auth_code = require(request.form, 'code', TokenRequestError('invalid_request',
-                                    'code parameter is missing'))
-
-                auth_request = authorization_requests.get(auth_code)
-                if auth_request is None:
-                    raise TokenRequestError('invalid_request', 'authorization request not found')
-
-                if auth_request['client_id'] != client_id:
-                    raise TokenRequestError('invalid_request', 'client id mismatch')
-
-                if is_expired(auth_request):
-                    raise TokenRequestError('invalid_request', 'auth code is expired')
-
-                client = client_store.get(client_id)
-                if not client:
-                    raise TokenRequestError('invalid_request', 'unknown client')
-
-                verify_client_credentials(client)
-                user_info = auth_request
+                assert grant_type == 'authorization_code'
+                user_info, client = verify_authorization_request(client_store)
+                client_id = client['client_id']
 
             token = generate_token(user_info, keypair[0])
 
@@ -99,10 +81,6 @@ def create_blueprint(client_store, keypair):
     def unsupported(grant_type):
         return grant_type not in ('authorization_code', 'refresh_token', 'client_credentials')
 
-    def is_expired(auth_request):
-        now = int(time.time())
-        return now > int(auth_request['issued_at']) + FIVEMINUTES
-
     def generate_token(auth_request, private_key):
         now = int(time.time())
         claims = {
@@ -116,10 +94,38 @@ def create_blueprint(client_store, keypair):
         }
 
         token = jwt.encode(claims, private_key, algorithm='RS256')
-
         return token
 
     return token_bp
+
+
+def verify_authorization_request(client_store):
+    client_id = require(request.form, 'client_id', TokenRequestError('invalid_request',
+                        'client_id parameter is missing'))
+    auth_code = require(request.form, 'code', TokenRequestError('invalid_request',
+                        'code parameter is missing'))
+
+    auth_request = authorization_requests.get(auth_code)
+    if auth_request is None:
+        raise TokenRequestError('invalid_request', 'authorization request not found')
+
+    if auth_request['client_id'] != client_id:
+        raise TokenRequestError('invalid_request', 'client id mismatch')
+
+    if is_expired(auth_request):
+        raise TokenRequestError('invalid_request', 'auth code is expired')
+
+    client = client_store.get(client_id)
+    if not client:
+        raise TokenRequestError('invalid_request', 'unknown client')
+
+    verify_client_credentials(client)
+    return auth_request, client
+
+
+def is_expired(auth_request):
+    now = int(time.time())
+    return now > int(auth_request['issued_at']) + FIVEMINUTES
 
 
 def create_refresh_token(client_id, auth_request):
@@ -152,26 +158,35 @@ def verify_refresh_token(client_store):
 
 def verify_client_credentials(client):
     if client['token_endpoint_auth_method'] == 'client_secret_basic':
-        id, secret = extract_basic_credentials()
+        id, secret = extract_credentials()
         if id != client['client_id']:
             raise TokenRequestError('invalid_request', 'Invalid client id')
         if secret != client['client_secret']:
             raise TokenRequestError('invalid_request', 'Incorrect client secret')
 
 
-def extract_basic_credentials():
+def extract_credentials():
     try:
-        authorization_header = request.headers['Authorization']
-        if authorization_header.startswith('Basic '):
-            encoded = authorization_header[6:]
-            raw = base64.b64decode(encoded.encode('utf-8')).decode('utf-8')
-            client_id, client_secret = raw.split(':')
-            return client_id, client_secret
+        if 'Authorization' in request.headers:
+            return extract_basic_credentials(request.headers['Authorization'])
+        else:
+            return extract_post_credentials()
     except Exception as ex:
         logger.error(str(ex))   # log exception and raise TokenRequestError
 
     raise TokenRequestError('invalid_request', 'Error verifying client credentials')
 
 
+def extract_basic_credentials(authorization_header):
+    if not authorization_header.startswith('Basic '):
+        raise TokenRequestError('invalid_request', 'not basic auth')
+    encoded = authorization_header[6:]
+    raw = base64.b64decode(encoded.encode('utf-8')).decode('utf-8')
+    client_id, client_secret = raw.split(':')
+    return client_id, client_secret
+
+
 def extract_post_credentials():
-    pass
+    client_id = request.form['client_id']
+    client_secret = request.form['client_secret']
+    return client_id, client_secret

@@ -49,3 +49,25 @@ def public_client(test_client):
         return response.json
 
     raise RuntimeError('Error registering client')
+
+
+@pytest.fixture(scope='session')
+def confidential_client_post(test_client):
+    payload = {
+        'grant_types': [
+            'authorization_code'
+        ],
+        'redirect_uris': [
+            'https://localhost:5001/cb',
+            'https://localhost:5003/cb'
+        ],
+        'token_endpoint_auth_method': 'client_secret_post',
+        'name': 'confidential_client'
+    }
+    response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
+    if response.status_code == 201:
+        return response.json
+
+    raise RuntimeError('Error registering client')
+
+

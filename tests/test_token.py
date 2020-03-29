@@ -253,6 +253,36 @@ def test_token_endpoint_issues_token_using_client_credentials(test_client, confi
         assert response.json['refresh_token']
 
 
+def test_token_endpoint_using_client_credentials_post(test_client, confidential_client_post):
+    """
+        GIVEN:  POST request to the /token endpoint
+        WHEN:   all form variables are present and correct
+        THEN:   response is 200 OK with access token in the JSON payload
+    """
+
+    client_id = confidential_client_post['client_id']
+    post_data = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': confidential_client_post['client_secret']
+    }
+
+    with freezegun.freeze_time("2020-03-14 12:00:00"):
+        response = test_client.post('/token', data=post_data)
+
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        assert response.json['expires_in'] == 3600
+        assert response.json['token_type'] == 'Bearer'
+        token = decode_token(response.json['access_token'])
+        assert token['aud'] == 'urn:my_service'
+        assert token['sub'] == client_id
+        assert token['iat'] == 1584187200
+        assert token['nbf'] == 1584187200
+        assert token['exp'] == 1584190800
+        assert response.json['refresh_token']
+
+
 def decode_token(encoded):
     with open("./public.pem", "rb") as f:
         public_key = f.read()
