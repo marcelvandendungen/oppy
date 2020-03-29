@@ -39,6 +39,15 @@ def create_blueprint(client_store, keypair):
             if grant_type == 'refresh_token':
                 user_info, client = verify_refresh_token(client_store)
                 client_id = user_info['client_id']
+            elif grant_type == 'client_credentials':
+                client_id, _ = extract_basic_credentials()
+                client = client_store.get(client_id)
+                if not client:
+                    raise TokenRequestError('invalid_request', 'unknown client')
+                verify_client_credentials(client)
+                user_info = {
+                    'id': client_id
+                }
             else:
                 client_id = require(request.form, 'client_id', TokenRequestError('invalid_request',
                                     'client_id parameter is missing'))
@@ -59,7 +68,7 @@ def create_blueprint(client_store, keypair):
                 if not client:
                     raise TokenRequestError('invalid_request', 'unknown client')
 
-                verify_client_credentials(client, client_id)
+                verify_client_credentials(client)
                 user_info = auth_request
 
             token = generate_token(user_info, keypair[0])
@@ -88,7 +97,7 @@ def create_blueprint(client_store, keypair):
             return response, 400
 
     def unsupported(grant_type):
-        return grant_type not in ('authorization_code', 'refresh_token')
+        return grant_type not in ('authorization_code', 'refresh_token', 'client_credentials')
 
     def is_expired(auth_request):
         now = int(time.time())
@@ -97,7 +106,6 @@ def create_blueprint(client_store, keypair):
     def generate_token(auth_request, private_key):
         now = int(time.time())
         claims = {
-            'username': auth_request['username'],
             'sub': str(auth_request['id']),
             'iss': 'https://localhost:5000',
             'aud': 'urn:my_service',
@@ -120,7 +128,6 @@ def create_refresh_token(client_id, auth_request):
     refresh_tokens[refresh_token] = {
         'client_id': client_id,
         'expires': now + WEEK,
-        'username': auth_request['username'],
         'id': str(auth_request['id'])
     }
     return refresh_token
@@ -138,17 +145,17 @@ def verify_refresh_token(client_store):
     if not client:
         raise TokenRequestError('invalid_request', 'unknown client')
 
-    verify_client_credentials(client, client_id)
+    verify_client_credentials(client)
 
     return user_info, client
 
 
-def verify_client_credentials(client, client_id):
+def verify_client_credentials(client):
     if client['token_endpoint_auth_method'] == 'client_secret_basic':
-        id, client_secret = extract_basic_credentials()
-        if id != client_id:
+        id, secret = extract_basic_credentials()
+        if id != client['client_id']:
             raise TokenRequestError('invalid_request', 'Invalid client id')
-        if client_secret != client['client_secret']:
+        if secret != client['client_secret']:
             raise TokenRequestError('invalid_request', 'Incorrect client secret')
 
 
