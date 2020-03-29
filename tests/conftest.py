@@ -69,5 +69,3 @@ def confidential_client_post(test_client):
         return response.json
 
     raise RuntimeError('Error registering client')
-
-
