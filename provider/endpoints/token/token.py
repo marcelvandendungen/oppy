@@ -1,3 +1,4 @@
+import base64
 import time
 import jwt
 import logging
@@ -36,13 +37,8 @@ def create_blueprint(client_store, keypair):
                 raise TokenRequestError('invalid_request', 'grant_type not supported')
 
             if grant_type == 'refresh_token':
-                refresh_token = require(request.form, 'refresh_token', TokenRequestError('invalid_request',
-                                        'refresh_token is missing'))
-                user_info = refresh_tokens.get(refresh_token)
-                if not user_info:
-                    raise TokenRequestError('invalid_grant', 'unknown refresh token')
+                user_info, client = verify_refresh_token(client_store)
                 client_id = user_info['client_id']
-                # TODO: verify client credentials and match client id againt info.client_id
             else:
                 client_id = require(request.form, 'client_id', TokenRequestError('invalid_request',
                                     'client_id parameter is missing'))
@@ -59,13 +55,14 @@ def create_blueprint(client_store, keypair):
                 if is_expired(auth_request):
                     raise TokenRequestError('invalid_request', 'auth code is expired')
 
+                client = client_store.get(client_id)
+                if not client:
+                    raise TokenRequestError('invalid_request', 'unknown client')
+
+                verify_client_credentials(client, client_id)
                 user_info = auth_request
 
             token = generate_token(user_info, keypair[0])
-
-            client = client_store.get(client_id)
-            if not client:
-                raise TokenRequestError('invalid_request', 'unknown client')
 
             logger.info(str(token))
             resp = {
@@ -127,3 +124,47 @@ def create_refresh_token(client_id, auth_request):
         'id': str(auth_request['id'])
     }
     return refresh_token
+
+
+def verify_refresh_token(client_store):
+    refresh_token = require(request.form, 'refresh_token', TokenRequestError('invalid_request',
+                            'refresh_token is missing'))
+    user_info = refresh_tokens.get(refresh_token)
+    if not user_info:
+        raise TokenRequestError('invalid_grant', 'unknown refresh token')
+
+    client_id = user_info['client_id']
+    client = client_store.get(client_id)
+    if not client:
+        raise TokenRequestError('invalid_request', 'unknown client')
+
+    verify_client_credentials(client, client_id)
+
+    return user_info, client
+
+
+def verify_client_credentials(client, client_id):
+    if client['token_endpoint_auth_method'] == 'client_secret_basic':
+        id, client_secret = extract_basic_credentials()
+        if id != client_id:
+            raise TokenRequestError('invalid_request', 'Invalid client id')
+        if client_secret != client['client_secret']:
+            raise TokenRequestError('invalid_request', 'Incorrect client secret')
+
+
+def extract_basic_credentials():
+    try:
+        authorization_header = request.headers['Authorization']
+        if authorization_header.startswith('Basic '):
+            encoded = authorization_header[6:]
+            raw = base64.b64decode(encoded.encode('utf-8')).decode('utf-8')
+            client_id, client_secret = raw.split(':')
+            return client_id, client_secret
+    except Exception as ex:
+        logger.error(str(ex))   # log exception and raise TokenRequestError
+
+    raise TokenRequestError('invalid_request', 'Error verifying client credentials')
+
+
+def extract_post_credentials():
+    pass

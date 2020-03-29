@@ -1,5 +1,4 @@
 import logging
-from tests.conftest import confidential_client
 import requests
 import os
 import sys
@@ -38,12 +37,14 @@ def index():
         if response.status_code == 200:
             return render_template('index.html', token=response.json())
         elif response.status_code == 401:
+            logger.info("token is expired, refreshing...")
             try:
                 access_token = refresh_access_token()
                 response = redirect('/')    # redirect to index page
                 response.set_cookie('token', access_token)
                 return response
-            except RuntimeError:
+            except RuntimeError as ex:
+                logger.error("Error refreshing token: " + str(ex))
                 pass    # default to new authorization request
         else:
             logger.warn("Response from resource server: " + str(response.status_code))
@@ -73,7 +74,7 @@ def auth_code():
 
 def get_token(auth_code):
     token_endpoint = 'https://localhost:5000/token'
-    redirect_url = 'http://localhost:5001/cb'
+    redirect_url = 'https://localhost:5001/cb'
     headers = {}
     headers['Content-Type'] = "application/x-www-form-urlencoded"
     # headers['Authorization'] = 'Basic ' + \

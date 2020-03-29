@@ -1,3 +1,4 @@
+import base64
 import freezegun
 import jwt
 import pytest
@@ -97,6 +98,12 @@ def test_token_endpoint_issues_token(test_client, confidential_client):
     code, _ = authenticate_user(test_client, confidential_client)
 
     client_id = confidential_client['client_id']
+    client_secret = confidential_client['client_secret']
+    plaintext = f'{client_id}:{client_secret}'
+
+    headers = {
+        'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
+    }
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
@@ -104,7 +111,7 @@ def test_token_endpoint_issues_token(test_client, confidential_client):
     }
 
     with freezegun.freeze_time("2020-03-14 12:00:00"):
-        response = test_client.post('/token', data=post_data)
+        response = test_client.post('/token', headers=headers, data=post_data)
 
         assert response.status_code == 200
         assert response.headers['Content-Type'] == 'application/json'
@@ -152,6 +159,12 @@ def test_token_refresh(test_client, confidential_client):
     code, _ = authenticate_user(test_client, confidential_client)
 
     client_id = confidential_client['client_id']
+    client_secret = confidential_client['client_secret']
+    plaintext = f'{client_id}:{client_secret}'
+
+    headers = {
+        'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
+    }
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
@@ -160,7 +173,7 @@ def test_token_refresh(test_client, confidential_client):
 
     # get the initial refresh_token
     with freezegun.freeze_time("2020-03-14 12:00:00"):
-        response = test_client.post('/token', data=post_data)
+        response = test_client.post('/token', headers=headers, data=post_data)
 
         assert response.status_code == 200
         refresh_token = response.json['refresh_token']
@@ -171,7 +184,7 @@ def test_token_refresh(test_client, confidential_client):
     }
     # use refresh token to get new access_token
     with freezegun.freeze_time("2020-03-14 13:01:00"):
-        response = test_client.post('/token', data=post_data)
+        response = test_client.post('/token', headers=headers, data=post_data)
 
         assert response.status_code == 200
         assert response.headers['Content-Type'] == 'application/json'
