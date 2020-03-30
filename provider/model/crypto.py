@@ -38,12 +38,6 @@ def generate_challenge(code_verifier):
     return base64.urlsafe_b64encode(m.digest())
 
 
-def require(parameters, key_name, error):
-    if key_name not in parameters:
-        raise error
-    return parameters[key_name]
-
-
 def generate_keypair(length=RSA_KEY_LEN):
     """
       Generates RSA keypair of at least RSA_KEY_LEN bytes

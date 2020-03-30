@@ -4,7 +4,7 @@ import jwt
 import logging
 from flask import Blueprint, request, make_response
 from provider.model.refresh_token_store import refresh_token_store
-from provider.model.crypto import require
+from provider.model.util import require
 from provider.model import crypto
 
 ONE_HOUR = 60 * 60

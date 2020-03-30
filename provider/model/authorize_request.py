@@ -1,6 +1,7 @@
 import time
 from urllib.parse import urlencode
 from provider.model import crypto
+from provider.model.util import require
 from provider.model.authorization_request_store import authorization_requests
 
 
@@ -23,24 +24,18 @@ class AuthorizeRequest:
 
     def __init__(self, dictionary):
         self.parameters = dictionary
-        self.parameters.require = self.require
 
     @classmethod
     def from_dictionary(cls, parameters):
         return AuthorizeRequest(parameters)
-
-    def require(self, key_name, error):
-        if key_name not in self.parameters:
-            raise error
-        return self.parameters[key_name]
 
     def validate(self, client_store):
         "Handles initial redirect to OP, validates query parameters"
 
         client = self.lookup_client(client_store)
 
-        self.response_type = self.require('response_type', AuthorizeRequestError('invalid_request',
-                                          'response_type parameter is missing'))
+        self.response_type = require(self.parameters, 'response_type', AuthorizeRequestError('invalid_request',
+                                     'response_type parameter is missing'))
 
         # only support code flow for now
         if self.response_type != 'code':
@@ -63,8 +58,8 @@ class AuthorizeRequest:
         client = self.lookup_client(client_store)
 
         # throw Error if username or password missing
-        self.require('username', BadAuthorizeRequestError('invalid_request', 'username not found'))
-        self.require('password', BadAuthorizeRequestError('invalid_request', 'password not found'))
+        require(self.parameters, 'username', BadAuthorizeRequestError('invalid_request', 'username not found'))
+        require(self.parameters, 'password', BadAuthorizeRequestError('invalid_request', 'password not found'))
 
         self.override_redirect_uri(client)
         self.validate_pkce(client)
@@ -97,7 +92,8 @@ class AuthorizeRequest:
         "look up client in registered clients by client id"
 
         # if client id is missing, return bad request response
-        self.client_id = self.require('client_id', BadAuthorizeRequestError('invalid_request', 'client_id is missing'))
+        self.client_id = require(self.parameters, 'client_id', BadAuthorizeRequestError('invalid_request',
+                                 'client_id is missing'))
 
         client = client_store.get(self.client_id)
 
@@ -125,8 +121,8 @@ class AuthorizeRequest:
           Verify that PKCE query parameters are present and correct for public clients
         """
         if is_public(client):
-            self.code_challenge = self.require('code_challenge', AuthorizeRequestError('invalid_request',
-                                                                                       'code challenge required'))
+            self.code_challenge = require(self.parameters, 'code_challenge',
+                                          AuthorizeRequestError('invalid_request', 'code challenge required'))
             self.code_challenge_method = self.parameters.get('code_challenge_method')
             if not self.code_challenge_method:
                 self.code_challenge_method = 'plain'

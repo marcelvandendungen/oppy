@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 
 from provider.model.authorization_request_store import authorization_requests
 from provider.model.refresh_token_store import refresh_token_store
-from provider.model.crypto import require
+from provider.model.util import require
 
 FIVEMINUTES = 5 * 60
 
