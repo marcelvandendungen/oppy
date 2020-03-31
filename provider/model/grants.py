@@ -57,6 +57,10 @@ class Grant:
 
 
 class AuthorizationCodeGrant(Grant):
+    """
+      Validates authorization code grant.
+      https://tools.ietf.org/html/rfc6749#section-4.1
+    """
     def __init__(self, client_store):
         super().__init__(client_store)
 
@@ -94,6 +98,10 @@ class AuthorizationCodeGrant(Grant):
 
 
 class RefreshTokenGrant(Grant):
+    """
+      Validates refresh token grant.
+      https://tools.ietf.org/html/rfc6749#section-6
+    """
     def __init__(self, client_store):
         super().__init__(client_store)
 
@@ -119,6 +127,10 @@ class RefreshTokenGrant(Grant):
 
 
 class ClientCredentialsGrant(Grant):
+    """
+      Validates client credentials grant.
+      https://tools.ietf.org/html/rfc6749#section-4.4
+    """
     def __init__(self, client_store):
         super().__init__(client_store)
 

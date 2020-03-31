@@ -1,11 +1,9 @@
-import logging
-
 from flask import Blueprint, make_response
 from jwcrypto import jwk
 
-logger = logging.getLogger('jwk')
-logger.setLevel(logging.INFO)
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+from provider.model.util import init_logging
+
+logger = init_logging(__name__)
 
 
 def create_blueprint():

@@ -1,16 +1,15 @@
-import logging
 import requests
 import os
 import sys
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
+from provider.model.util import init_logging
 
 from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
+logger = init_logging(__name__)
 
 refresh_token = None
 

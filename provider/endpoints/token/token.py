@@ -1,18 +1,17 @@
 from provider.model.grants import AuthorizationCodeGrant, ClientCredentialsGrant, GrantError, RefreshTokenGrant
 import time
 import jwt
-import logging
 from flask import Blueprint, request, make_response
 from provider.model.refresh_token_store import refresh_token_store
 from provider.model.util import require
 from provider.model import crypto
+from provider.model.util import init_logging
 
 ONE_HOUR = 60 * 60
 ONE_WEEK = 7 * 24 * ONE_HOUR
 
-logger = logging.getLogger('token')
-logger.setLevel(logging.INFO)
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
+logger = init_logging(__name__)
 
 handlers = {
     'authorization_code': AuthorizationCodeGrant,

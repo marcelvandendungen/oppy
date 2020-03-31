@@ -1,12 +1,10 @@
-import logging
 from urllib.parse import urlencode
 
 from flask import Blueprint, request, make_response, render_template, redirect
 from provider.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
+from provider.model.util import init_logging
 
-logger = logging.getLogger('authorize')
-logger.setLevel(logging.INFO)
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+logger = init_logging(__name__)
 
 
 def create_blueprint(client_store):
