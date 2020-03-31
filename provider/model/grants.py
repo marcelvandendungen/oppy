@@ -15,6 +15,10 @@ class GrantError(Exception):
 
 
 class Grant:
+    """
+      Class to handle specifics of validating each grant. Derived classes must implement the validate
+      method.
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, client_store):
@@ -66,7 +70,7 @@ class AuthorizationCodeGrant(Grant):
         auth_code = require(request.form, 'code', GrantError('invalid_request',
                             'code parameter is missing'))
 
-        auth_request = authorization_requests.get(auth_code)
+        auth_request = authorization_requests.pop(auth_code)
         if auth_request is None:
             raise GrantError('invalid_request', 'authorization request not found')
 

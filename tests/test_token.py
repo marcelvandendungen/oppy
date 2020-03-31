@@ -124,6 +124,14 @@ def test_token_endpoint_issues_token(test_client, confidential_client):
         assert token['exp'] == 1584190800
         assert response.json['refresh_token']
 
+    # try to reuse same auto code to ensure code can only be used once
+    with freezegun.freeze_time("2020-03-14 12:01:00"):
+        response = test_client.post('/token', headers=headers, data=post_data)
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'invalid_request'
+        assert response.json['error_description'] == 'authorization request not found'
+
 
 def test_token_endpoint_fails_on_expired_code(test_client, confidential_client):
     """
