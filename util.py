@@ -1,4 +1,5 @@
 import logging
+import yaml
 
 
 def init_logging(name):
@@ -13,3 +14,8 @@ def require(parameters, key_name, error):
     if key_name not in parameters:
         raise error
     return parameters[key_name]
+
+
+def init_config(path):
+    config = yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
+    return config

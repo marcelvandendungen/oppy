@@ -1,7 +1,7 @@
 from flask import Blueprint, make_response
 from jwcrypto import jwk
 
-from provider.model.util import init_logging
+from util import init_logging
 
 logger = init_logging(__name__)
 

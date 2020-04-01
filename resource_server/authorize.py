@@ -1,9 +1,9 @@
-from provider.model.crypto import verify
 import jwt
 import requests
 from functools import wraps
 from flask import request
 from jwcrypto import jwk
+from util import init_config
 
 
 def get_public_key(url):
@@ -12,7 +12,9 @@ def get_public_key(url):
     return key.export_to_pem()
 
 
-public_key = get_public_key('https://localhost:5000/jwk')
+config = init_config('config.yml')
+
+public_key = get_public_key(config['endpoints']['issuer'] + config['endpoints']['jwks'])
 
 
 class AuthorizeError(Exception):

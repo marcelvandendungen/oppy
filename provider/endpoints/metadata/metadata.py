@@ -1,4 +1,4 @@
-from provider.model.util import init_logging
+from util import init_logging
 
 from flask import Blueprint, jsonify, make_response
 

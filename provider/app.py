@@ -9,6 +9,7 @@ from provider.endpoints.register.register import create_blueprint as create_regi
 from provider.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
 from provider.endpoints.metadata.metadata import create_blueprint as create_metadata_blueprint
 from provider.model.client_store import client_store
+from util import init_config
 
 
 def read_pem(filename):
@@ -32,14 +33,14 @@ def init_crypto():
     return private_key, public_key
 
 
-config = yaml.load(open('provider/config/config.yml', 'r'), Loader=yaml.FullLoader)
+config = init_config('config.yml')
 
 keypair = init_crypto()
 app = Flask(__name__)
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 app.register_blueprint(create_authorize_blueprint(client_store))
-app.register_blueprint(create_token_blueprint(client_store, keypair))
+app.register_blueprint(create_token_blueprint(client_store, keypair, config))
 app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())
 app.register_blueprint(create_metadata_blueprint(config))

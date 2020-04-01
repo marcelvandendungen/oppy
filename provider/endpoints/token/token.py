@@ -3,9 +3,8 @@ import time
 import jwt
 from flask import Blueprint, request, make_response
 from provider.model.refresh_token_store import refresh_token_store
-from provider.model.util import require
 from provider.model import crypto
-from provider.model.util import init_logging
+from util import init_logging, require
 
 ONE_HOUR = 60 * 60
 ONE_WEEK = 7 * 24 * ONE_HOUR
@@ -24,7 +23,7 @@ class TokenRequestError(RuntimeError):
     pass
 
 
-def create_blueprint(client_store, keypair):
+def create_blueprint(client_store, keypair, config):
     token_bp = Blueprint('token_bp', __name__)
 
     @token_bp.route('/token', methods=["POST"])
@@ -72,7 +71,7 @@ def create_blueprint(client_store, keypair):
         now = int(time.time())
         claims = {
             'sub': str(auth_request['id']),
-            'iss': 'https://localhost:5000',
+            'iss': config['endpoints']['issuer'],
             'aud': 'urn:my_service',
             'iat': now,
             'nbf': now,

@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 
 from flask import Blueprint, request, make_response, render_template, redirect
 from provider.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
-from provider.model.util import init_logging
+from util import init_logging
 
 logger = init_logging(__name__)
 

@@ -3,12 +3,13 @@ import os
 import sys
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
-from provider.model.util import init_logging
+from util import init_logging, init_config
 
 from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
 
 
+config = init_config('config.yml')
 logger = init_logging(__name__)
 
 refresh_token = None
@@ -20,7 +21,7 @@ def get_public_key(url):
     return key.export_to_pem()
 
 
-public_key = get_public_key('https://localhost:5000/jwk')
+public_key = get_public_key(config['endpoints']['issuer'] + '/jwk')
 client_id = os.environ['CONFIDENTIAL_CLIENT_ID']
 logger.info('client_id: ' + client_id)
 

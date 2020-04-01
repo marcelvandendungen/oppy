@@ -1,8 +1,8 @@
 import time
 from urllib.parse import urlencode
 from provider.model import crypto
-from provider.model.util import require
 from provider.model.authorization_request_store import authorization_requests
+from util import require
 
 
 class BadAuthorizeRequestError(RuntimeError):
