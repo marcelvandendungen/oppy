@@ -20,6 +20,7 @@ def create_blueprint(config):
             'registration_endpoint': issuer + config['endpoints']['registration'],
             'scopes_supported': config['capabilities']['scopes_supported'],
             'response_types_supported': config['capabilities']['response_types_supported'],
+            'response_modes_supported': config['capabilities']['response_modes_supported'],
             'grant_types_supported': config['capabilities']['grant_types_supported'],
             'claims_supported': config['capabilities']['claims_supported']
         }

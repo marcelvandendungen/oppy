@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div id="layout">
+        <div class="content">
+            <h2>'{{client_name}}' is asking for access to your data</h2>
+
+            <form method="POST" action="/consent">
+
+                {% for scope in scopes %}
+                <div>
+                    <label for="scopes" title="{{scope}}">
+                        <input type="checkbox" name="scopes" checked> {{scope}}
+                    </label>
+                </div>
+                {% endfor %}
+
+                <div>
+                    <input type="submit" value="Give consent">
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

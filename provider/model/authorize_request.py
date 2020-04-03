@@ -133,12 +133,17 @@ class AuthorizeRequest:
     def verify_user_credentials(self):
         return {
             'id': 'abcdef',
-            'username': 'mvandend'
+            'username': 'mvandend',
+            'consent_given': False
         }
 
     def issue_code(self):
         "Generate an authorization code for the request"
         return crypto.generate_code()
+
+    @property
+    def consent_given(self):
+        return True
 
 
 def is_public(client):

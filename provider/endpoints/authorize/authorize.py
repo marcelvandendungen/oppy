@@ -8,8 +8,7 @@ logger = init_logging(__name__)
 
 
 def create_blueprint(client_store):
-    authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates',
-                             static_folder='static', static_url_path='/static')
+    authorize_bp = Blueprint('authorize_bp', __name__, template_folder='templates')
 
     @authorize_bp.route('/authorize', methods=["GET", "POST"])
     def authorize():
@@ -45,4 +44,7 @@ def process_authentication_request(client_store):
     issues authorization code if all is correct
     """
     authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
-    return redirect(authorize_request.redirection_url())
+    if authorize_request.consent_given:
+        return redirect(authorize_request.redirection_url())
+    else:
+        return render_template('consent.html', client_name='My client', scopes=['read', 'write'])

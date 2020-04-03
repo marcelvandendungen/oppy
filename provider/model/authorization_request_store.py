@@ -12,11 +12,8 @@ class AuthorizationRequestStore:
     def add(self, request_info):
         self.authorization_requests[request_info['code']] = request_info
 
-    def pop(self, client_id):
-        return self.authorization_requests.pop(client_id, None)
-
-    def update(self, client_id, user_info):
-        self.authorization_requests[client_id].update(user_info)
+    def pop(self, code):
+        return self.authorization_requests.pop(code, None)
 
 
 authorization_requests = AuthorizationRequestStore()
