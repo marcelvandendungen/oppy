@@ -1,6 +1,5 @@
 import traceback
 import sys
-from provider.model.authorization_request_store import authorization_requests
 from provider.model.consent_store import consent_store
 from urllib.parse import urlencode
 

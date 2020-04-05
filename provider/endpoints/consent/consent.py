@@ -30,11 +30,16 @@ def process_consent_request(client_store):
       Processes POST /consent endpoint, verifies posted form variables,
       issues authorization code if all is correct
     """
-    # get id from form vars
-    id = request.form['id']
-    # look up auth code by id
-    auth_code = consent_store.get(id)
-    # look up auth request by code
-    authorize_request = AuthorizeRequest.from_dictionary(authorization_requests.get(auth_code))
-    # redirect to client with query parameters
-    return redirect(authorize_request.redirection_url())
+    try:
+        # get id from form vars
+        id = request.form['id']
+        # look up auth code by id
+        auth_code = consent_store.get(id)
+        # look up auth request by code
+        authorize_request = AuthorizeRequest.from_dictionary(authorization_requests.get(auth_code))
+        # redirect to client with query parameters
+        return redirect(authorize_request.redirection_url())
+    except Exception as ex:
+        logger.error(str(ex))
+        traceback.print_exc(file=sys.stdout)
+        return "Error occurred: " + str(ex), 500

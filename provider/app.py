@@ -40,7 +40,7 @@ app = Flask(__name__, static_url_path='')
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 app.register_blueprint(create_authorize_blueprint(client_store))
-app.register_blueprint(create_token_blueprint(client_store, keypair, config))
+app.register_blueprint(create_token_blueprint(client_store, keypair[0], config))
 app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())
 app.register_blueprint(create_metadata_blueprint(config))

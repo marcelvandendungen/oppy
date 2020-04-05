@@ -25,6 +25,5 @@ def create_blueprint(clients):
                 'error': ex.code,
                 'error_description': str(ex)
             }), 400
-            # return "Error occurred: " + ' - '.join(ex.args), 400
 
     return register_bp

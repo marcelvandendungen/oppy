@@ -1,61 +1,25 @@
-from provider.model.authorization_request_store import authorization_requests
-import jwt
-import time
 import traceback
 import sys
 from flask import Blueprint, request, make_response
-from provider.model.grants import AuthorizationCodeGrant, ClientCredentialsGrant, GrantError, RefreshTokenGrant
-from provider.model.refresh_token_store import refresh_token_store
-from provider.model import crypto
-from util import init_logging, require
-
-ONE_HOUR = 60 * 60
-ONE_WEEK = 7 * 24 * ONE_HOUR
+from provider.model.token_request import TokenRequest, TokenRequestError
+from provider.model.grants import GrantError
+from util import init_logging
 
 
 logger = init_logging(__name__)
 
-handlers = {
-    'authorization_code': AuthorizationCodeGrant,
-    'refresh_token': RefreshTokenGrant,
-    'client_credentials': ClientCredentialsGrant
-}
 
-
-class TokenRequestError(RuntimeError):
-    pass
-
-
-def create_blueprint(client_store, keypair, config):
+def create_blueprint(client_store, private_key, config):
     token_bp = Blueprint('token_bp', __name__)
 
     @token_bp.route('/token', methods=["POST"])
     def token():
 
         try:
-            grant_type = require(request.form, 'grant_type', TokenRequestError('invalid_request',
-                                 'grant_type parameter is missing'))
+            token_request = TokenRequest(client_store, private_key, config['endpoints']['issuer'])
+            resp = token_request.create_response(request)
 
-            if unsupported(grant_type):
-                raise TokenRequestError('invalid_request', 'grant_type not supported')
-
-            grant = handlers[grant_type]
-            principal, client = grant(client_store).validate(request)
-
-            token = generate_token(principal, keypair[0])
-
-            logger.info(str(token))
-            resp = {
-                'access_token': token.decode("utf-8"),
-                'token_type': 'Bearer',
-                'expires_in': ONE_HOUR
-            }
-
-            if not client.is_public():
-                resp['refresh_token'] = create_refresh_token(client['client_id'], principal)
-
-            if 'code' in principal:
-                authorization_requests.pop(principal['code'])
+            logger.info(str(resp))
 
             return resp, 200
         except KeyError as ex:
@@ -71,33 +35,4 @@ def create_blueprint(client_store, keypair, config):
             response.headers['Content-Type'] = 'application/json'
             return response, 400
 
-    def unsupported(grant_type):
-        return grant_type not in ('authorization_code', 'refresh_token', 'client_credentials')
-
-    def generate_token(auth_request, private_key):
-        now = int(time.time())
-        claims = {
-            'sub': str(auth_request['id']),
-            'iss': config['endpoints']['issuer'],
-            'aud': 'urn:my_service',
-            'iat': now,
-            'nbf': now,
-            'exp': now + ONE_HOUR,
-            'scope': 'read write'
-        }
-
-        token = jwt.encode(claims, private_key, algorithm='RS256')
-        return token
-
     return token_bp
-
-
-def create_refresh_token(client_id, auth_request):
-    now = int(time.time())
-    refresh_token = crypto.generate_refresh_token()
-    refresh_token_store.add(refresh_token, {
-        'client_id': client_id,
-        'expires': now + ONE_WEEK,
-        'id': str(auth_request['id'])
-    })
-    return refresh_token
