@@ -74,7 +74,7 @@ class AuthorizationCodeGrant(Grant):
         auth_code = require(request.form, 'code', GrantError('invalid_request',
                             'code parameter is missing'))
 
-        auth_request = authorization_requests.pop(auth_code)
+        auth_request = authorization_requests.get(auth_code)
         if auth_request is None:
             raise GrantError('invalid_request', 'authorization request not found')
 

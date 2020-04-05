@@ -74,8 +74,8 @@ def test_token_endpoint_raises_error_for_unknown_client(test_client, confidentia
     form_vars = {
         'client_id': client_id,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
-        'username': 'test_user',
-        'password': 'P@ssW0rd123'
+        'username': 'testuser',
+        'password': 'p@ssW0rd!'
     }
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302
@@ -200,7 +200,7 @@ def test_token_refresh(test_client, confidential_client):
         assert response.json['token_type'] == 'Bearer'
         token = decode_token(response.json['access_token'])
         assert token['aud'] == 'urn:my_service'
-        assert token['sub'] == 'abcdef'
+        assert token['sub']
         assert token['iat'] == 1584190860
         assert token['nbf'] == 1584190860
         assert token['exp'] == 1584194460
@@ -309,8 +309,8 @@ def authenticate_user(test_client, client):
     form_vars = {
         'client_id': client_id,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
-        'username': 'test_user',
-        'password': 'P@ssW0rd123'
+        'username': 'testuser',
+        'password': 'p@ssW0rd!'
     }
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302

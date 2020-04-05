@@ -1,3 +1,6 @@
+import traceback
+import sys
+from provider.model.authorize_request import AuthorizeRequest
 from flask import Blueprint, request, redirect
 from provider.model.authorization_request_store import authorization_requests
 from provider.model.consent_store import consent_store
@@ -16,6 +19,7 @@ def create_blueprint(client_store):
 
         except Exception as ex:
             logger.error(ex)
+            traceback.print_exc(file=sys.stdout)
             return "Error occurred: " + str(ex), 400
 
     return consent_bp
@@ -27,10 +31,10 @@ def process_consent_request(client_store):
       issues authorization code if all is correct
     """
     # get id from form vars
-    id = request.form_vars['id']
+    id = request.form['id']
     # look up auth code by id
     auth_code = consent_store.get(id)
     # look up auth request by code
-    authorize_request = authorization_requests.pop(auth_code)
+    authorize_request = AuthorizeRequest.from_dictionary(authorization_requests.get(auth_code))
     # redirect to client with query parameters
     return redirect(authorize_request.redirection_url())

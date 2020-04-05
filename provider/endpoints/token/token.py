@@ -1,7 +1,10 @@
-from provider.model.grants import AuthorizationCodeGrant, ClientCredentialsGrant, GrantError, RefreshTokenGrant
-import time
+from provider.model.authorization_request_store import authorization_requests
 import jwt
+import time
+import traceback
+import sys
 from flask import Blueprint, request, make_response
+from provider.model.grants import AuthorizationCodeGrant, ClientCredentialsGrant, GrantError, RefreshTokenGrant
 from provider.model.refresh_token_store import refresh_token_store
 from provider.model import crypto
 from util import init_logging, require
@@ -51,11 +54,15 @@ def create_blueprint(client_store, keypair, config):
             if not client.is_public():
                 resp['refresh_token'] = create_refresh_token(client['client_id'], principal)
 
+            if 'code' in principal:
+                authorization_requests.pop(principal['code'])
+
             return resp, 200
         except KeyError as ex:
             raise TokenRequestError('invalid_request', ex)
         except (TokenRequestError, GrantError) as ex:
             logger.error(ex)
+            traceback.print_exc(file=sys.stdout)
             payload = {
                 'error': ex.args[0],
                 'error_description': ex.args[1]

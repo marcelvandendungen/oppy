@@ -1,3 +1,4 @@
+import base64
 import requests
 import os
 import sys
@@ -23,6 +24,7 @@ def get_public_key(url):
 
 public_key = get_public_key(config['endpoints']['issuer'] + '/jwk')
 client_id = os.environ['CONFIDENTIAL_CLIENT_ID']
+client_secret = os.environ['CONFIDENTIAL_CLIENT_SECRET']
 logger.info('client_id: ' + client_id)
 
 
@@ -77,8 +79,7 @@ def get_token(auth_code):
     redirect_url = 'https://localhost:5001/cb'
     headers = {}
     headers['Content-Type'] = "application/x-www-form-urlencoded"
-    # headers['Authorization'] = 'Basic ' + \
-    #                            base64.b64encode((client_id + ':' + client_secret).encode()).decode('utf-8')
+    headers['Authorization'] = authorization_header()
 
     data = {"grant_type": "authorization_code",
             "code": auth_code,
@@ -96,8 +97,8 @@ def get_token(auth_code):
 def refresh_access_token():
     token_endpoint = 'https://localhost:5000/token'
     headers = {
-        'Content-Type': "application/x-www-form-urlencoded"
-        # Authorization': 'Basic ' + base64.b64encode((client_id + ':' + client_secret).encode()).decode('utf-8')
+        'Content-Type': "application/x-www-form-urlencoded",
+        'Authorization': authorization_header()
     }
 
     data = {
@@ -110,6 +111,10 @@ def refresh_access_token():
         return response.json()["access_token"]
 
     raise RuntimeError('Error refreshing token')
+
+
+def authorization_header():
+    return 'Basic ' + base64.b64encode((client_id + ':' + client_secret).encode()).decode('utf-8')
 
 
 def main():

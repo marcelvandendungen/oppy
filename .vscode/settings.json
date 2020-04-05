@@ -15,6 +15,7 @@
         "PKCE",
         "PKCS",
         "genrsa",
+        "hasattr",
         "issubset",
         "jsonify",
         "jwcrypto",
