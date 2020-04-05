@@ -47,7 +47,8 @@ def process_authorization_request(client_store):
 def process_authentication_request(client_store):
     """
     Processes POST /authorize endpoint, verifies posted credentials and other form variables,
-    issues authorization code if all is correct
+    issues authorization code if all is correct and user has already given consent, displays
+    consent page otherwise.
     """
     authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
     logger.info("Added auth request for: " + authorize_request.code)
@@ -56,7 +57,6 @@ def process_authentication_request(client_store):
     else:
         # store code by id
         id = consent_store.add(authorize_request.code)
-        client_id = authorize_request.client_id
-        state = authorize_request.state
         return render_template('consent.html', client_name='My client', scopes=['read', 'write'],
-                               id=id, client_id=client_id, state=state)
+                               id=id, client_id=authorize_request.client_id, 
+                               state=authorize_request.state)

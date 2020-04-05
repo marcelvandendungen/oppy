@@ -148,30 +148,6 @@ def test_post_to_authorize_issues_code(test_client, confidential_client):
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
 
 
-def test_redirect_uri_specified(test_client, confidential_client):
-    """
-        GIVEN:  POST request to the /authorize endpoint
-        WHEN:   redirect_uri query parameter is specified
-        THEN:   response is 302 Redirect to first registered redirect URI
-    """
-    client = confidential_client
-    form_vars = {
-        'client_id': client['client_id'],
-        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
-        'username': 'testuser',
-        'redirect_uri': 'https://localhost:5003/cb',
-        'password': 'p@ssW0rd!'
-    }
-
-    response = test_client.post('/authorize', data=form_vars)
-    assert response.status_code == 302
-    parsed_uri = urlparse(response.headers['Location'])
-    assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == client['redirect_uris'][1]
-    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
-    assert query_params['code']
-    assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
-
-
 def test_post_to_authorize_with_whitelisted_redirect_uri_redirects_correctly(test_client, confidential_client):
     """
         GIVEN:  POST request to the /authorize endpoint
@@ -185,13 +161,13 @@ def test_post_to_authorize_with_whitelisted_redirect_uri_redirects_correctly(tes
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'testuser',
         'password': 'p@ssW0rd!',
-        'redirect_uri': client['redirect_uris'][0]
+        'redirect_uri': client['redirect_uris'][1]
     }
 
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302
     parsed_uri = urlparse(response.headers['Location'])
-    assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == client['redirect_uris'][0]
+    assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == client['redirect_uris'][1]
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['code']
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
@@ -314,6 +290,36 @@ def test_post_to_authorize_issues_code_for_public_client(test_client, public_cli
     query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
     assert query_params['code']
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
+
+
+def test_post_to_authorize_with_non_consented_user_returns_consent_page(test_client, confidential_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all form variables are present, correct, but user has not given consent yet
+        THEN:   response is 200 Ok with consent page with checkboxes for each scope
+    """
+
+    client = confidential_client
+    form_vars = {
+        'client_id': client['client_id'],
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'mvandend',
+        'password': 'p@ssW0rd!',
+        'scope': 'read write'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 200
+    assert response.headers['Content-Type'].startswith('text/html')
+
+    soup = BeautifulSoup(response.data, features="html.parser")
+    assert soup.find('input', dict(name='client_id'))['value'] == client['client_id']
+    assert soup.find('input', dict(name='state'))['value'] == form_vars['state']
+    assert soup.find('input', dict(name='id'))['value']
+
+    checkboxes = soup.findAll('input', dict(name='scopes'))
+    assert 'read' in checkboxes[0].nextSibling
+    assert 'write' in checkboxes[1].nextSibling
 
 
 def create_url(path, **query_params):
