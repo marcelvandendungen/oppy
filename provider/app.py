@@ -48,7 +48,6 @@ app.register_blueprint(create_consent_blueprint(config))
 
 
 def main():
-    print('running main')
     app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'],
             ssl_context=('cert.pem', 'key.pem'))
 

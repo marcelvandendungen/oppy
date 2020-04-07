@@ -35,7 +35,6 @@ def resource():
 
 
 def main():
-    print('running resource server')
     app.run(host='0.0.0.0', port=5002, debug=app.config['TESTING'],
             ssl_context=('cert.pem', 'key.pem'))
 

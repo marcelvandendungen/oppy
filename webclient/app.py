@@ -118,7 +118,6 @@ def authorization_header():
 
 
 def main():
-    print('running main')
     app.run(host='0.0.0.0', port=5001, debug=app.config['TESTING'],
             ssl_context=('cert.pem', 'key.pem'))
 

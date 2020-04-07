@@ -294,7 +294,6 @@ def test_token_endpoint_using_client_credentials_post(test_client, confidential_
 def decode_token(encoded):
     with open("./public.pem", "rb") as f:
         public_key = f.read()
-        print(public_key)
 
     token = jwt.decode(encoded, public_key, audience='urn:my_service', algorithms='RS256')
     return token
