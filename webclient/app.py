@@ -1,4 +1,5 @@
 import base64
+from provider.model.crypto import verify
 import requests
 import os
 import sys
@@ -22,9 +23,32 @@ def get_public_key(url):
     return key.export_to_pem()
 
 
+def register_client():
+
+    url = "https://127.0.0.1:5000/register"
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "grant_types": ["authorization_code"],
+        "redirect_uris": ["https://localhost:5001/cb", "https://localhost:5003/cb"],
+        "name": "confidential_client",
+        "scope": "read write"
+    }
+
+    response = requests.post(url, headers=headers, json=payload, verify=False)
+    return response.json()['client_id'], response.json()['client_secret']
+
+
 public_key = get_public_key(config['endpoints']['issuer'] + '/jwk')
-client_id = os.environ['CONFIDENTIAL_CLIENT_ID']
-client_secret = os.environ['CONFIDENTIAL_CLIENT_SECRET']
+# read client id and secret from environment
+client_id = os.environ.get('CONFIDENTIAL_CLIENT_ID')
+if client_id:
+    client_secret = os.environ['CONFIDENTIAL_CLIENT_SECRET']
+else:
+    # if not set, register client and use it's id and secret
+    client_id, client_secret = register_client()
+
 logger.info('client_id: ' + client_id)
 
 
@@ -45,8 +69,8 @@ def index():
                 response = redirect('/')    # redirect to index page
                 response.set_cookie('token', access_token)
                 return response
-            except RuntimeError as ex:
-                logger.error("Error refreshing token: " + str(ex))
+            except Exception:
+                logger.exception("Exception occurred")
                 pass    # default to new authorization request
         else:
             logger.warn("Response from resource server: " + str(response.status_code))

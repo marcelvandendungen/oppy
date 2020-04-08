@@ -18,7 +18,7 @@ handlers = {
 }
 
 
-class TokenRequestError(RuntimeError):
+class TokenRequestError(Exception):
     pass
 
 

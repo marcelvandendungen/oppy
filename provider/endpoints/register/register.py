@@ -20,7 +20,7 @@ def create_blueprint(clients):
             resp.headers['Content-Type'] = 'application/json'
             return resp, 201
         except RegistrationError as ex:
-            logger.error(str(ex))
+            logger.exception("Exception occurred")
             return jsonify({
                 'error': ex.code,
                 'error_description': str(ex)

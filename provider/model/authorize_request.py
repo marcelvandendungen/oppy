@@ -5,14 +5,14 @@ from provider.model.authorization_request_store import authorization_requests
 from provider.model.user_store import user_store
 
 
-class BadAuthorizeRequestError(RuntimeError):
+class BadAuthorizeRequestError(Exception):
     def __init__(self, error, error_description, error_uri=""):
         self.error = error
         self.error_description = error_description
         self.error_uri = error_uri
 
 
-class AuthorizeRequestError(RuntimeError):
+class AuthorizeRequestError(Exception):
     def __init__(self, error, error_description, error_uri=""):
         self.error = error
         self.error_description = error_description

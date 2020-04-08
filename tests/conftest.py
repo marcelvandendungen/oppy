@@ -4,6 +4,10 @@ import json
 import pytest
 
 
+class FixtureError(Exception):
+    pass
+
+
 @pytest.fixture(scope='session')
 def test_client():
     testing_client = app.test_client()
@@ -27,13 +31,14 @@ def confidential_client(test_client):
             'https://localhost:5003/cb'
         ],
         'token_endpoint_auth_method': 'client_secret_basic',
-        'name': 'confidential_client'
+        'name': 'confidential_client',
+        'scope': "read write"
     }
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     if response.status_code == 201:
         return response.json
 
-    raise RuntimeError('Error registering client')
+    raise FixtureError('Error registering client')
 
 
 @pytest.fixture(scope='session')
@@ -48,7 +53,7 @@ def public_client(test_client):
     if response.status_code == 201:
         return response.json
 
-    raise RuntimeError('Error registering client')
+    raise FixtureError('Error registering client')
 
 
 @pytest.fixture(scope='session')
@@ -68,4 +73,4 @@ def confidential_client_post(test_client):
     if response.status_code == 201:
         return response.json
 
-    raise RuntimeError('Error registering client')
+    raise FixtureError('Error registering client')

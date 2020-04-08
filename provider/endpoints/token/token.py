@@ -1,5 +1,3 @@
-import traceback
-import sys
 from flask import Blueprint, request, make_response
 from provider.model.token_request import TokenRequest, TokenRequestError
 from provider.model.grants import GrantError
@@ -25,8 +23,7 @@ def create_blueprint(client_store, private_key, config):
         except KeyError as ex:
             raise TokenRequestError('invalid_request', ex)
         except (TokenRequestError, GrantError) as ex:
-            logger.error(ex)
-            traceback.print_exc(file=sys.stdout)
+            logger.exception("Exception occurred")
             payload = {
                 'error': ex.args[0],
                 'error_description': ex.args[1]

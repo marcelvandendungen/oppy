@@ -1,5 +1,3 @@
-import traceback
-import sys
 from provider.model.authorize_request import AuthorizeRequest
 from flask import Blueprint, request, redirect
 from provider.model.authorization_request_store import authorization_requests
@@ -18,8 +16,7 @@ def create_blueprint(client_store):
             return process_consent_request(client_store)
 
         except Exception as ex:
-            logger.error(ex)
-            traceback.print_exc(file=sys.stdout)
+            logger.exception("Exception occurred")
             return "Error occurred: " + str(ex), 400
 
     return consent_bp
@@ -40,6 +37,5 @@ def process_consent_request(client_store):
         # redirect to client with query parameters
         return redirect(authorize_request.redirection_url())
     except Exception as ex:
-        logger.error(str(ex))
-        traceback.print_exc(file=sys.stdout)
+        logger.exception("Exception occurred")
         return "Error occurred: " + str(ex), 500

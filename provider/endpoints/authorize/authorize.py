@@ -1,5 +1,3 @@
-import traceback
-import sys
 from provider.model.consent_store import consent_store
 from urllib.parse import urlencode
 
@@ -22,12 +20,10 @@ def create_blueprint(client_store):
                 return process_authentication_request(client_store)
 
         except BadAuthorizeRequestError as ex:
-            logger.error(ex)
-            traceback.print_exc(file=sys.stdout)
+            logger.exception("Exception occurred")
             return "Error occurred: " + ex.error_description, 400
         except AuthorizeRequestError as ex:
-            logger.error(ex)
-            traceback.print_exc(file=sys.stdout)
+            logger.exception("Exception occurred")
             query_params = vars(ex)
             return redirect('/?' + urlencode(query_params), code=302)
 
@@ -55,7 +51,10 @@ def process_authentication_request(client_store):
         return redirect(authorize_request.redirection_url())
     else:
         # store code by id
+        client = client_store.get(authorize_request.client_id)
         id = consent_store.add(authorize_request.code)
-        return render_template('consent.html', client_name='My client', scopes=['read', 'write'],
+        return render_template('consent.html', 
+                               client_name=client['name'],
+                               scopes=client.get('scope', '').split(' '),
                                id=id, client_id=authorize_request.client_id,
                                state=authorize_request.state)
