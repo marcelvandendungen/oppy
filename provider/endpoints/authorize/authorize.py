@@ -53,7 +53,7 @@ def process_authentication_request(client_store):
         # store code by id
         client = client_store.get(authorize_request.client_id)
         id = consent_store.add(authorize_request.code)
-        return render_template('consent.html', 
+        return render_template('consent.html',
                                client_name=client['name'],
                                scopes=client.get('scope', '').split(' '),
                                id=id, client_id=authorize_request.client_id,

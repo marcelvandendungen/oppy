@@ -107,7 +107,8 @@ def test_token_endpoint_issues_token(test_client, confidential_client):
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': client_id
+        'client_id': client_id,
+        'scope': 'write read'
     }
 
     with freezegun.freeze_time("2020-03-14 12:00:00"):
@@ -176,7 +177,8 @@ def test_token_refresh(test_client, confidential_client):
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': client_id
+        'client_id': client_id,
+        'scope': 'read write'
     }
 
     # get the initial refresh_token
@@ -242,7 +244,8 @@ def test_token_endpoint_issues_token_using_client_credentials(test_client, confi
         'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
     }
     post_data = {
-        'grant_type': 'client_credentials'
+        'grant_type': 'client_credentials',
+        'scope': 'read write'
     }
 
     with freezegun.freeze_time("2020-03-14 12:00:00"):
@@ -291,6 +294,15 @@ def test_token_endpoint_using_client_credentials_post(test_client, confidential_
         assert response.json['refresh_token']
 
 
+def test_token_endpoint_issues_token_with_requested_scopes(test_client, confidential_client):
+    """
+        GIVEN:  POST request to the /token endpoint
+        WHEN:   all form variables are present and correct, but requested scope is subset of allowed scopes
+        THEN:   response is 200 OK with access token for only requested scope
+    """
+    assert NotImplementedError()
+
+
 def decode_token(encoded):
     with open("./public.pem", "rb") as f:
         public_key = f.read()
@@ -309,7 +321,8 @@ def authenticate_user(test_client, client):
         'client_id': client_id,
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'testuser',
-        'password': 'p@ssW0rd!'
+        'password': 'p@ssW0rd!',
+        'scope': 'write read'
     }
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302

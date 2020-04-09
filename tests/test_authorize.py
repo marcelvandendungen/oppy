@@ -24,7 +24,7 @@ def test_invalid_client_id_results_in_error(test_client):
         WHEN:   client_id query parameter is not registered
         THEN:   response is 400 Bad Request
     """
-    url = create_url('/authorize', client_id='unknown_client', response_type='code', redirect_uri='xyz')
+    url = create_url('/authorize', client_id='unknown_client', response_type='code')
     response = test_client.get(url)
     assert response.status_code == 400
 
@@ -79,7 +79,7 @@ def test_query_parameters_are_reflected_in_response(test_client, confidential_cl
     """
     client = confidential_client
     url = create_url('/authorize', client_id=client['client_id'], redirect_uri=client['redirect_uris'][0],
-                     response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
+                     response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='read write')
     response = test_client.get(url)
     soup = BeautifulSoup(response.data, features="html.parser")
 
@@ -87,7 +87,23 @@ def test_query_parameters_are_reflected_in_response(test_client, confidential_cl
     assert soup.find('input', dict(name='client_id'))['value'] == client['client_id']
     assert soup.find('input', dict(name='redirect_uri'))['value'] == client['redirect_uris'][0]
     assert soup.find('input', dict(name='state'))['value'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
-    assert soup.find('input', dict(name='scope'))['value'] == 'scope1 scope2'
+    assert soup.find('input', dict(name='scope'))['value'] == 'read write'
+
+
+def test_invalid_scope_returns_error(test_client, confidential_client):
+    """
+        GIVEN:  GET request to the /authorize endpoint
+        WHEN:   query parameters are specified, scope is invalid
+        THEN:   response is 302 Redirect with error parameters
+    """
+    client = confidential_client
+    url = create_url('/authorize', client_id=client['client_id'], redirect_uri=client['redirect_uris'][0],
+                     response_type='code', state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='scope1 scope2')
+    response = test_client.get(url)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    assert query_params['error'] == 'invalid_scope'
+    assert query_params['error_description'] == 'One or more scopes are invalid'
 
 
 def test_missing_query_parameters_not_reflected_in_response(test_client, confidential_client):

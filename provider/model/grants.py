@@ -29,12 +29,14 @@ class Grant:
         pass
 
     def verify_client_credentials(self, client, request):
-        if client['token_endpoint_auth_method'] == 'client_secret_basic':
+        if client['token_endpoint_auth_method'] == 'client_secret_basic' or client['token_endpoint_auth_method'] == 'client_secret_post':
             id, secret = self.extract_credentials(request)
             if id != client['client_id']:
                 raise GrantError('invalid_request', 'Invalid client id')
             if secret != client['client_secret']:
                 raise GrantError('invalid_request', 'Incorrect client secret')
+        else:
+            raise GrantError('invalid_client', 'Could not verify client credentials')
 
     def extract_credentials(self, request):
         if 'Authorization' in request.headers:
@@ -141,6 +143,15 @@ class ClientCredentialsGrant(Grant):
             raise GrantError('invalid_request', 'unknown client')
         self.verify_client_credentials(client, request)
         user_info = {
-            'id': client_id
+            'id': client_id,
+            'scope': self.verify_scopes(request.form.get('scope'), client)
         }
         return user_info, client
+
+    def verify_scopes(self, scopes, client):
+        allowed_scopes = set(client['scope'].split(' '))
+        requested_scopes = allowed_scopes if scopes is None else set(scopes.split(' '))
+
+        if not requested_scopes.issubset(allowed_scopes):
+            raise GrantError('invalid_scope', 'One or more scopes are invalid')
+        return ' '.join(requested_scopes)

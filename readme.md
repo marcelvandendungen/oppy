@@ -22,9 +22,11 @@ $ export FLASK_ENV=development
 $ export FLASK_DEBUG=1
 $ python -m flask run
 # OR
+$ export PYTHONPATH="$HOME/dev/oppy"
+$ export TESTING=True
 $ python -m provider
-# OR
 $ python -m resource_server
+$ python -m webclient
 ```
 
 ## Run test instructions

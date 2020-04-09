@@ -21,7 +21,8 @@
                 {% endfor %}
 
                 <div>
-                    <input type="submit" value="Give consent">
+                    <input type="submit" name="approve" value="Approve">
+                    <input type="submit" name="deny" value="Deny">
                 </div>
                 <input type="hidden" name="id" value="{{id}}">
                 <input type="hidden" name="state" value="{{state}}">

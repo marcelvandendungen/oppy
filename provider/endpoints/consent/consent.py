@@ -34,8 +34,13 @@ def process_consent_request(client_store):
         auth_code = consent_store.get(id)
         # look up auth request by code
         authorize_request = AuthorizeRequest.from_dictionary(authorization_requests.get(auth_code))
-        # redirect to client with query parameters
-        return redirect(authorize_request.redirection_url())
+        # check if consent granted
+        if request.form.get('approve'):
+            # redirect to client with query parameters
+            return redirect(authorize_request.redirection_url())
+        else:
+            # denied
+            return redirect(authorize_request.redirect_error('access_denied'))
     except Exception as ex:
         logger.exception("Exception occurred")
         return "Error occurred: " + str(ex), 500

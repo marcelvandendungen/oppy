@@ -47,7 +47,8 @@ def public_client(test_client):
         'client_id': 'public_client',
         'redirect_uris': ['https://localhost:5002/cb'],
         'token_endpoint_auth_method': 'None',
-        'name': 'public_client'
+        'name': 'public_client',
+        'scope': "read write"
     }
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     if response.status_code == 201:
@@ -67,7 +68,8 @@ def confidential_client_post(test_client):
             'https://localhost:5003/cb'
         ],
         'token_endpoint_auth_method': 'client_secret_post',
-        'name': 'confidential_client'
+        'name': 'confidential_client',
+        'scope': "read write"
     }
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     if response.status_code == 201:

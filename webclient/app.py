@@ -1,5 +1,4 @@
 import base64
-from provider.model.crypto import verify
 import requests
 import os
 import sys

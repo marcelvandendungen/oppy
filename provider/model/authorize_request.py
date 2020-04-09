@@ -52,6 +52,8 @@ class AuthorizeRequest:
 
         self.override_redirect_uri(client)
 
+        self.validate_scopes(client)
+
         self.validate_pkce(client)
 
         return self
@@ -94,6 +96,17 @@ class AuthorizeRequest:
 
         return self.redirect_uri + '?' + urlencode(query_params)
 
+    def redirect_error(self, code):
+        # redirect to redirect_uri with error and state as query parameters
+        query_params = {
+            'error': code
+        }
+
+        if hasattr(self, 'state'):
+            query_params['state'] = self.state
+
+        return self.redirect_uri + '?' + urlencode(query_params)
+
     def lookup_client(self, client_store):
         "look up client in registered clients by client id"
 
@@ -118,6 +131,13 @@ class AuthorizeRequest:
                 raise BadAuthorizeRequestError('invalid_redirect_uri', 'Not a registered redirect uri')
         else:
             self.redirect_uri = registered_uris[0]
+
+    def validate_scopes(self, client):
+        if hasattr(self, 'scope'):
+            requested_scopes = set(self.scope.split(' '))
+            allowed_scopes = set(client['scope'].split(' '))
+            if not requested_scopes.issubset(allowed_scopes):
+                raise AuthorizeRequestError('invalid_scope', 'One or more scopes are invalid')
 
     def validate_pkce(self, client):
         """

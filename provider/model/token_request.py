@@ -69,7 +69,7 @@ class TokenRequest:
             'iat': now,
             'nbf': now,
             'exp': now + ONE_HOUR,
-            'scope': 'read write'
+            'scope': auth_request['scope']
         }
 
         token = jwt.encode(claims, private_key, algorithm='RS256')
@@ -81,7 +81,8 @@ class TokenRequest:
         refresh_token_store.add(refresh_token, {
             'client_id': client_id,
             'expires': now + ONE_WEEK,
-            'id': str(auth_request['id'])
+            'id': str(auth_request['id']),
+            'scope': auth_request['scope']
         })
         return refresh_token
 
