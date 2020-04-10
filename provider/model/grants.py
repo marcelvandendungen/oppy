@@ -29,7 +29,8 @@ class Grant:
         pass
 
     def verify_client_credentials(self, client, request):
-        if client['token_endpoint_auth_method'] == 'client_secret_basic' or client['token_endpoint_auth_method'] == 'client_secret_post':
+        if client['token_endpoint_auth_method'] == 'client_secret_basic' or \
+           client['token_endpoint_auth_method'] == 'client_secret_post':
             id, secret = self.extract_credentials(request)
             if id != client['client_id']:
                 raise GrantError('invalid_request', 'Invalid client id')

@@ -43,6 +43,12 @@ class TokenRequest:
         if 'code' in principal:
             authorization_requests.pop(principal['code'])
 
+        if 'openid' in principal['scope']:
+            payload['id_token'] = self.generate_token(principal, 
+                                                      self.private_key,
+                                                      {'aud': client['client_id'],
+                                                       'name': principal['name']}).decode("utf-8")
+
         return payload
 
     def validate(self, request):
@@ -57,20 +63,21 @@ class TokenRequest:
         return principal, client
 
     def issue_access_token(self, principal):
-        token = self.generate_token(principal, self.private_key)
+        token = self.generate_token(principal, self.private_key, {'aud': 'urn:my_service'})
         return token
 
-    def generate_token(self, auth_request, private_key):
+    def generate_token(self, auth_request, private_key, add_claims):
         now = int(time.time())
         claims = {
             'sub': str(auth_request['id']),
             'iss': self.issuer,
-            'aud': 'urn:my_service',
             'iat': now,
             'nbf': now,
             'exp': now + ONE_HOUR,
             'scope': auth_request['scope']
         }
+
+        claims.update(add_claims)
 
         token = jwt.encode(claims, private_key, algorithm='RS256')
         return token

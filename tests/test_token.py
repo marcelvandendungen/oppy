@@ -303,15 +303,61 @@ def test_token_endpoint_issues_token_with_requested_scopes(test_client, confiden
     assert NotImplementedError()
 
 
-def decode_token(encoded):
+def test_token_endpoint_issues_id_token(test_client, confidential_client):
+    """
+        GIVEN:  POST request to the /token endpoint
+        WHEN:   all form variables are present and correct and openid is specified in scope
+        THEN:   response is 200 OK with access token and id token in the JSON payload
+    """
+
+    code, _ = authenticate_user(test_client, confidential_client, scope='write read openid')
+
+    client_id = confidential_client['client_id']
+    client_secret = confidential_client['client_secret']
+    plaintext = f'{client_id}:{client_secret}'
+
+    headers = {
+        'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
+    }
+    post_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'scope': 'read write, openid',
+        'client_id': client_id
+    }
+
+    with freezegun.freeze_time("2020-03-14 12:00:00"):
+        response = test_client.post('/token', headers=headers, data=post_data)
+
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        assert response.json['expires_in'] == 3600
+        assert response.json['token_type'] == 'Bearer'
+        token = decode_token(response.json['access_token'])
+        assert token['aud'] == 'urn:my_service'
+        assert token['sub']
+        assert token['iat'] == 1584187200
+        assert token['nbf'] == 1584187200
+        assert token['exp'] == 1584190800
+        assert response.json['refresh_token']
+        token = decode_token(response.json['id_token'], audience=client_id)
+        assert token['aud'] == client_id
+        assert token['name'] == 'Test User'
+        assert token['sub']
+        assert token['iat'] == 1584187200
+        assert token['nbf'] == 1584187200
+        assert token['exp'] == 1584190800
+
+
+def decode_token(encoded, audience='urn:my_service'):
     with open("./public.pem", "rb") as f:
         public_key = f.read()
 
-    token = jwt.decode(encoded, public_key, audience='urn:my_service', algorithms='RS256')
+    token = jwt.decode(encoded, public_key, audience=audience, algorithms='RS256')
     return token
 
 
-def authenticate_user(test_client, client):
+def authenticate_user(test_client, client, scope='write read'):
     """
       POST to the authorize endpoint to authenticate the user and generate an authorization code
     """
@@ -322,7 +368,7 @@ def authenticate_user(test_client, client):
         'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
         'username': 'testuser',
         'password': 'p@ssW0rd!',
-        'scope': 'write read'
+        'scope': scope
     }
     response = test_client.post('/authorize', data=form_vars)
     assert response.status_code == 302

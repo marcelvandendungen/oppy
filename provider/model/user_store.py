@@ -25,8 +25,10 @@ user_store = UserStore()
 user_store.add({
     'username': 'mvandend',
     'password': 'p@ssW0rd!',
-    'consent_given': False})
+    'consent_given': False,
+    'name': 'Marcel'})
 user_store.add({
     'username': 'testuser',
     'password': 'p@ssW0rd!',
-    'consent_given': True})
+    'consent_given': True,
+    'name': 'Test User'})
