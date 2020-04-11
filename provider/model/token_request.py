@@ -44,7 +44,7 @@ class TokenRequest:
             authorization_requests.pop(principal['code'])
 
         if 'openid' in principal['scope']:
-            payload['id_token'] = self.generate_token(principal, 
+            payload['id_token'] = self.generate_token(principal,
                                                       self.private_key,
                                                       {'aud': client['client_id'],
                                                        'name': principal['name']}).decode("utf-8")
