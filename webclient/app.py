@@ -1,8 +1,11 @@
 import base64
+import collections
+from provider.model.token_request import TokenRequestError
 import jwt
 import requests
 import os
 import sys
+import uuid
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
 from util import init_logging, init_config
@@ -13,8 +16,28 @@ app = Flask(__name__)
 
 config = init_config('config.yml')
 logger = init_logging(__name__)
+scopes = {}
 
-refresh_token = None
+
+Token = collections.namedtuple('Token', ['type', 'token'])
+
+
+class TokenStore:
+    def __init__(self):
+        self.tokens = {}
+
+    def add(self, scope, token, type):
+        t = Token(type=type, token=token)
+        self.tokens[scope] = t
+
+    def get(self, scope, type):
+        token = self.tokens.get(scope)
+        if token and token.type == type:
+            return token
+        return None
+
+
+tokens = TokenStore()
 
 
 def get_public_key(url):
@@ -37,71 +60,97 @@ def register_client():
     }
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
-    return response.json()['client_id'], response.json()['client_secret']
+    return response.json()
 
 
 public_key = get_public_key(config['endpoints']['issuer'] + '/jwk')
 # read client id and secret from environment
-client_id = os.environ.get('CONFIDENTIAL_CLIENT_ID')
+client_id = os.environ.get('CLIENT_ID')
 if client_id:
-    client_secret = os.environ['CONFIDENTIAL_CLIENT_SECRET']
+    client_secret = os.environ['CLIENT_SECRET']
+    redirect_uri = os.environ['REDIRECT_URI']
 else:
     # if not set, register client and use it's id and secret
-    client_id, client_secret = register_client()
+    client = register_client()
+    client_id = client['client_id']
+    client_secret = client['client_secret']
+    redirect_uri = client['redirect_uris'][0]
+
 
 logger.info('client_id: ' + client_id)
 
 
 @app.route("/")
 def index():
-    cookie = request.cookies.get('token')
-    if cookie:
-        id_claims = get_token_claims(request.cookies.get('id_token'))
 
-        logger.info('cookie: ' + cookie)
-        response = requests.get('https://localhost:5002/resource',
-                                headers={'Authorization': 'Bearer ' + cookie},
-                                verify=False)
-        if response.status_code == 200:
-            return render_template('index.html', token=response.json(), name=id_claims['name'])
-        elif response.status_code == 401:
-            logger.info("token is expired, refreshing...")
-            try:
-                access_token = refresh_access_token()
-                response = redirect('/')    # redirect to index page
-                response.set_cookie('token', access_token)
-                return response
-            except Exception:
-                logger.exception("Exception occurred")
-                pass    # default to new authorization request
+    id_token = tokens.get('openid', 'id_token')
+    try:
+        if id_token:
+            logger.info('id_token found: ' + id_token)
+            id_claims = get_token_claims(id_token, client_id)
         else:
-            logger.warn("Response from resource server: " + str(response.status_code))
+            logger.info('id token not found')
+            return authorize_request(client, scope='openid')
+    except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError) as ex:
+        logger.warn('ID token expired: ', str(ex))
+        return authorize_request(client, scope='openid')
 
-    # client id should be set in the environment
-    return redirect(authorize_request('https://localhost:5000/authorize', client_id=client_id,
-                    redirect_uri='https://localhost:5001/cb', response_type='code',
-                    state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='read write openid'))
+    access_token = tokens.get('read write', 'access_token')
+    try:
+        if access_token:
+            logger.info('access token found: ' + access_token)
+            response = requests.get('https://localhost:5002/resource',
+                                    headers={'Authorization': 'Bearer ' + access_token},
+                                    verify=False)
+            if response.status_code == 200:
+                return render_template('index.html', token=response.json(), name=id_claims['name'])
+            elif response.status_code == 401:
+                logger.info("Access token is expired, refreshing...")
+                access_token = refresh_access_token('urn:my_service', 'read write')
+                response = redirect('/')    # redirect to index page
+                response.set_cookie('token', access_token, samesite='Lax')
+                return response
+        else:
+            logger.info('access cookie not found')
+            return authorize_request(client, scope='read write')
+
+    except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, TokenRequestError):
+        return authorize_request(client, scope='read write')
 
 
-def authorize_request(url, **query_params):
+def authorize_request(client, scope):
+    logger.info('Requesting token(s) with scope: ' + scope)
+    state = str(uuid.uuid4())
+    scopes[state] = scope
+    return redirect(request_url('https://localhost:5000/authorize', client_id=client_id, redirect_uri=redirect_uri,
+                                response_type='code', state=state, scope=scope))
+
+
+def request_url(url, **query_params):
     return url + '?' + urlencode(query_params)
 
 
 @app.route("/cb")
 def auth_code():
+    error = request.args.get('error')
+    if error:
+        return render_template('error.html', error=error)
+
     code = request.args.get('code')
     logger.warning('code = ' + code)
+    state = request.args.get('state')
     # get token using auth code
-    access_token, id_token = get_tokens(code)
+    access_token, id_token = get_tokens(code, state)
     logger.info(access_token)
     # store access_token as cookie
     response = redirect('/')    # redirect to index page
-    response.set_cookie('token', access_token)
-    response.set_cookie('id_token', id_token)
     return response
 
 
-def get_tokens(auth_code):
+def get_tokens(auth_code, state):
+
+    scope = scopes[state]
+
     token_endpoint = 'https://localhost:5000/token'
     redirect_url = 'https://localhost:5001/cb'
     headers = {}
@@ -114,14 +163,27 @@ def get_tokens(auth_code):
             "client_id": client_id}
 
     response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
+    if response.status_code == 200:
+        access_token = response.json()["access_token"]
+        tokens.add(scope, access_token, 'access_token')
+        refresh_token = response.json().get("refresh_token")
+        if refresh_token:
+            tokens.add(scope, access_token, 'refresh_token')
+        id_token = response.json().get("refresh_token")
+        if id_token:
+            tokens.add(scope, id_token, 'id_token')
+        return access_token, id_token
 
-    global refresh_token
-    refresh_token = response.json()["refresh_token"]
-
-    return response.json()["access_token"], response.json()["id_token"]
+    raise TokenRequestError()
 
 
-def refresh_access_token():
+def refresh_access_token(audience, scope):
+
+    refresh_token = tokens.get(audience, 'refresh_token')
+
+    if not refresh_token:
+        raise TokenRequestError()
+
     token_endpoint = 'https://localhost:5000/token'
     headers = {
         'Content-Type': "application/x-www-form-urlencoded",
@@ -130,23 +192,27 @@ def refresh_access_token():
 
     data = {
         "grant_type": "refresh_token",
-        "refresh_token": refresh_token
+        "refresh_token": scope
     }
 
     response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
     if response.status_code == 200:
-        return response.json()["access_token"]
+        access_token = response.json()["access_token"]
+        tokens.add(scope, access_token, 'access_token')
+        refresh_token = response.json().get('refresh_token')
+        if refresh_token:
+            tokens.add(scope, refresh_token, 'refresh_token')
+        return access_token
 
-    raise RuntimeError('Error refreshing token')
+    raise TokenRequestError('Error refreshing token: ' + str(response))
 
 
 def authorization_header():
     return 'Basic ' + base64.b64encode((client_id + ':' + client_secret).encode()).decode('utf-8')
 
 
-def get_token_claims(id_token):
-    claims = jwt.decode(str.encode(id_token), public_key,
-                        audience=client_id, algorithm=['RS256'])
+def get_token_claims(token, audience):
+    claims = jwt.decode(str.encode(token), public_key, audience=audience, algorithm=['RS256'])
     return claims
 
 

@@ -1,3 +1,4 @@
+from webclient.app import logger
 import jwt
 import os
 import sys
@@ -14,6 +15,7 @@ app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 @app.errorhandler(Exception)
 def error_handler(ex):
     if isinstance(ex, (jwt.ExpiredSignatureError, jwt.DecodeError, AuthorizeError)):
+        logger.error(str(ex))
         return str(ex), 401
     return str(ex), 500
 

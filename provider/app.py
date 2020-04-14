@@ -39,7 +39,7 @@ keypair = init_crypto()
 app = Flask(__name__, static_url_path='')
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
-app.register_blueprint(create_authorize_blueprint(client_store))
+app.register_blueprint(create_authorize_blueprint(client_store, keypair[1], keypair[0]))
 app.register_blueprint(create_token_blueprint(client_store, keypair[0], config))
 app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())

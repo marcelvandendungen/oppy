@@ -1,3 +1,4 @@
+from webclient.app import logger
 import jwt
 import requests
 from functools import wraps
@@ -36,7 +37,9 @@ def validate_auth_header(headers, audience, scopes):
                         audience=audience, algorithm=['RS256'])
 
     required_scopes = set(scopes.split(' '))
+    logger.info('required scopes: ' + ' '.join(required_scopes))
     granted_scopes = set(claims['scope'].split(' '))
+    logger.info('granted scopes: ' + ' '.join(granted_scopes))
 
     if not required_scopes.issubset(granted_scopes):
         raise AuthorizeError('required scope missing', 401)

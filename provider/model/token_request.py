@@ -31,7 +31,8 @@ class TokenRequest:
 
     def create_response(self, request):
         principal, client = self.validate(request)
-        token = self.issue_access_token(principal)
+        audience = 'urn:my_service'
+        token = self.issue_access_token(principal, audience)
         payload = {
             'access_token': token.decode("utf-8"),
             'token_type': 'Bearer',
@@ -62,8 +63,8 @@ class TokenRequest:
         principal, client = grant(self.client_store).validate(request)
         return principal, client
 
-    def issue_access_token(self, principal):
-        token = self.generate_token(principal, self.private_key, {'aud': 'urn:my_service'})
+    def issue_access_token(self, principal, audience):
+        token = self.generate_token(principal, self.private_key, {'aud': audience})
         return token
 
     def generate_token(self, auth_request, private_key, add_claims):
@@ -85,12 +86,19 @@ class TokenRequest:
     def create_refresh_token(self, client_id, auth_request):
         now = int(time.time())
         refresh_token = crypto.generate_refresh_token()
-        refresh_token_store.add(refresh_token, {
+
+        payload = {
             'client_id': client_id,
             'expires': now + ONE_WEEK,
             'id': str(auth_request['id']),
             'scope': auth_request['scope']
-        })
+        }
+
+        if 'opendid' in auth_request['scope']:
+            payload['name'] = auth_request['name']
+
+        refresh_token_store.add(refresh_token, payload)
+
         return refresh_token
 
     @staticmethod

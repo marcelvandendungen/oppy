@@ -1,0 +1,69 @@
+@startuml
+skinparam BoxPadding 20
+autonumber "<b>[00]"
+title Webclient authentication flow
+
+box "local user" #f0f0f0
+database Cookies order 10
+participant Browser order 20
+end box
+
+box "client application" #f5fff5
+participant Webclient order 30
+end box
+
+box "authorization server" #f5fff5
+participant AuthSvr order 40
+database authRequests order 45
+database clients order 50
+database users order 60
+end box
+
+box "resource server" #f5fff5
+participant ResourceSvr order 80
+end box
+
+Browser -> Webclient: GET /
+
+group Webclient
+Browser <-- Webclient: 302 https://localhost:5000/authorize?client_id=...
+Browser -> AuthSvr: GET /authorize?client_id=...&scope=openid&...
+end
+
+group AuthSvr
+Browser <-- AuthSvr: 200 OK login.html
+Browser -> AuthSvr: POST user creds
+AuthSvr -> authRequests: request
+Browser <-- AuthSvr: 200 OK consent.html
+Browser -> Cookies: session cookie
+Browser -> AuthSvr: POST consent
+Browser <-- AuthSvr: 302 https://localhost:5001/cb?code=...&state=...
+Browser -> Webclient: GET /cb?code=...&state=...
+end
+
+Webclient -> AuthSvr: POST /token
+Webclient <-- AuthSvr: 200 ID token + access token
+
+group Webclient
+Browser <-- Webclient: 302 https://localhost:5000/authorize?client_id=...&scope=read%20write&...
+Browser -> AuthSvr: GET /authorize?client_id=...&scope=read%20write&...
+end
+
+group AuthSvr
+Browser <-- AuthSvr: 200 OK consent.html
+Browser -> AuthSvr: POST consent
+Browser <-- AuthSvr: 302 https://localhost:5001/cb?code=...&state=...
+Browser -> Webclient: GET /cb?code=...&state=...
+end
+
+Webclient -> AuthSvr: POST /token
+Webclient <-- AuthSvr: 200 access token
+
+Webclient -> ResourceSvr: GET /resource
+Webclient <-- ResourceSvr: 200 OK JSON
+
+group Webclient
+Browser <-- Webclient: 200 index.html
+end
+
+@enduml
