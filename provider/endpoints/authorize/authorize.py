@@ -35,8 +35,9 @@ def create_blueprint(client_store, public_key, private_key):
         is correct
         """
         authorize_request = AuthorizeRequest.from_dictionary(request.args).validate(client_store)
-        if authenticated_session(request.cookies.get('session')):
-            authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
+        session = authenticated_session(request.cookies.get('session'))
+        if session:
+            authorize_request = AuthorizeRequest.from_dictionary(request.args).process(client_store, session=session)
             return redirect(authorize_request.redirection_url())
 
         return make_response(render_template('login.html', req=authorize_request.__dict__))
@@ -48,7 +49,7 @@ def create_blueprint(client_store, public_key, private_key):
         consent page otherwise.
         """
         authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
-        session = create_session_token(authorize_request.username)
+        session = create_session_token(authorize_request)
         logger.info("Added auth request for: " + authorize_request.code)
         if authorize_request.user_has_given_consent:
             resp = redirect(authorize_request.redirection_url())
@@ -66,10 +67,11 @@ def create_blueprint(client_store, public_key, private_key):
 
         return resp
 
-    def create_session_token(username):
+    def create_session_token(principal):
         now = int(time.time())
         claims = {
-            'username': username,
+            'username': principal.username,
+            # 'name': principal.name,
             'aud': 'https://localhost:5000',
             'iat': now,
             'nbf': now,
@@ -80,11 +82,15 @@ def create_blueprint(client_store, public_key, private_key):
         return token
 
     def authenticated_session(token):
-        if not token:
-            logger.info("Session cookie not found")
-            return False
-        jwt.decode(str.encode(token), public_key, audience='https://localhost:5000', algorithm=['RS256'])
-        logger.warn("Session cookie is valid")
-        return True
+        try:
+            if not token:
+                logger.info("Session cookie not found")
+                return None
+            claims = jwt.decode(str.encode(token), public_key, audience='https://localhost:5000', algorithm=['RS256'])
+            logger.warn("Session cookie is valid")
+            return claims
+        except jwt.ExpiredSignatureError:
+            logger.info("Session cookie expired")
+            return None
 
     return authorize_bp

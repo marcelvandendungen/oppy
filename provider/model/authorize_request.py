@@ -58,24 +58,28 @@ class AuthorizeRequest:
 
         return self
 
-    def process(self, client_store):
+    def process(self, client_store, session=None):
         "Handles the credential verification and issues the authorization code"
 
         # client id must identify a registered client
         client = self.lookup_client(client_store)
 
-        # throw Error if username or password missing
-        username = self.require('username', BadAuthorizeRequestError('invalid_request',
-                                                                     'username not found'))
-        password = self.require('password', BadAuthorizeRequestError('invalid_request',
-                                                                     'password not found'))
+        if not session:
+            # throw Error if username or password missing
+            username = self.require('username', BadAuthorizeRequestError('invalid_request',
+                                                                         'username not found'))
+            password = self.require('password', BadAuthorizeRequestError('invalid_request',
+                                                                         'password not found'))
+            user_info = self.verify_user_credentials(username, password)
+            self.username = user_info['username']
+        else:
+            user_info = session
 
         self.override_redirect_uri(client)
         self.validate_pkce(client)
 
         self.code = self.issue_code()
 
-        user_info = self.verify_user_credentials(username, password)
         request_info = vars(self).copy()
 
         request_info['issued_at'] = int(time.time())

@@ -19,7 +19,7 @@ capabilities:
     grant_types_supported:
         - authorization_code
     claims_supported:
-        - username
+        - name
         - sub
         - iss
         - aud

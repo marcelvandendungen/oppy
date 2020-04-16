@@ -11,8 +11,6 @@ class UserStore:
 
     def add(self, info):
 
-        id = generate_code(16)
-        info.update({'id': id})
         self.users[info['username']] = info
         return id
 

@@ -31,7 +31,7 @@ class TokenRequest:
 
     def create_response(self, request):
         principal, client = self.validate(request)
-        audience = 'urn:my_service'
+        audience = 'https://localhost:5000/' if 'openid' in principal['scope'] else 'urn:my_service'
         token = self.issue_access_token(principal, audience)
         payload = {
             'access_token': token.decode("utf-8"),
@@ -70,7 +70,7 @@ class TokenRequest:
     def generate_token(self, auth_request, private_key, add_claims):
         now = int(time.time())
         claims = {
-            'sub': str(auth_request['id']),
+            'sub': str(auth_request['username']),
             'iss': self.issuer,
             'iat': now,
             'nbf': now,
@@ -90,7 +90,7 @@ class TokenRequest:
         payload = {
             'client_id': client_id,
             'expires': now + ONE_WEEK,
-            'id': str(auth_request['id']),
+            'id': str(auth_request['username']),
             'scope': auth_request['scope']
         }
 

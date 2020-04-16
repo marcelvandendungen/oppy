@@ -1,5 +1,4 @@
 import base64
-import collections
 from provider.model.token_request import TokenRequestError
 import jwt
 import requests
@@ -19,25 +18,19 @@ logger = init_logging(__name__)
 scopes = {}
 
 
-Token = collections.namedtuple('Token', ['type', 'token'])
-
-
 class TokenStore:
     def __init__(self):
         self.tokens = {}
 
     def add(self, scope, token, type):
-        t = Token(type=type, token=token)
-        self.tokens[scope] = t
+        self.tokens[(scope, type)] = token
 
     def get(self, scope, type):
-        token = self.tokens.get(scope)
-        if token and token.type == type:
-            return token
-        return None
+        token = self.tokens.get((scope, type))
+        return token
 
 
-tokens = TokenStore()
+tokencache = TokenStore()
 
 
 def get_public_key(url):
@@ -83,10 +76,10 @@ logger.info('client_id: ' + client_id)
 @app.route("/")
 def index():
 
-    id_token = tokens.get('openid', 'id_token')
+    id_token = tokencache.get('openid', 'id_token')
     try:
         if id_token:
-            logger.info('id_token found: ' + id_token)
+            logger.info('id_token found: ' + str(id_token))
             id_claims = get_token_claims(id_token, client_id)
         else:
             logger.info('id token not found')
@@ -95,7 +88,7 @@ def index():
         logger.warn('ID token expired: ', str(ex))
         return authorize_request(client, scope='openid')
 
-    access_token = tokens.get('read write', 'access_token')
+    access_token = tokencache.get('read write', 'access_token')
     try:
         if access_token:
             logger.info('access token found: ' + access_token)
@@ -140,8 +133,7 @@ def auth_code():
     logger.warning('code = ' + code)
     state = request.args.get('state')
     # get token using auth code
-    access_token, id_token = get_tokens(code, state)
-    logger.info(access_token)
+    get_tokens(code, state)
     # store access_token as cookie
     response = redirect('/')    # redirect to index page
     return response
@@ -165,21 +157,23 @@ def get_tokens(auth_code, state):
     response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
-        tokens.add(scope, access_token, 'access_token')
+        logger.info('access_token: ' + access_token)
+        tokencache.add(scope, access_token, 'access_token')
         refresh_token = response.json().get("refresh_token")
         if refresh_token:
-            tokens.add(scope, access_token, 'refresh_token')
-        id_token = response.json().get("refresh_token")
+            logger.info('refresh_token: ' + refresh_token)
+            tokencache.add(scope, access_token, 'refresh_token')
+        id_token = response.json().get("id_token")
         if id_token:
-            tokens.add(scope, id_token, 'id_token')
-        return access_token, id_token
-
-    raise TokenRequestError()
+            logger.info('id_token: ' + id_token)
+            tokencache.add(scope, id_token, 'id_token')
+    else:
+        raise TokenRequestError()
 
 
 def refresh_access_token(audience, scope):
 
-    refresh_token = tokens.get(audience, 'refresh_token')
+    refresh_token = tokencache.get(audience, 'refresh_token')
 
     if not refresh_token:
         raise TokenRequestError()
@@ -198,10 +192,10 @@ def refresh_access_token(audience, scope):
     response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
-        tokens.add(scope, access_token, 'access_token')
+        tokencache.add(scope, access_token, 'access_token')
         refresh_token = response.json().get('refresh_token')
         if refresh_token:
-            tokens.add(scope, refresh_token, 'refresh_token')
+            tokencache.add(scope, refresh_token, 'refresh_token')
         return access_token
 
     raise TokenRequestError('Error refreshing token: ' + str(response))
@@ -212,6 +206,7 @@ def authorization_header():
 
 
 def get_token_claims(token, audience):
+    logger.info(token)
     claims = jwt.decode(str.encode(token), public_key, audience=audience, algorithm=['RS256'])
     return claims
 
