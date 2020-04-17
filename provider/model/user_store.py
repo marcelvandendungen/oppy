@@ -1,5 +1,3 @@
-from provider.model.crypto import generate_code
-
 
 class UserStore:
     """
@@ -17,16 +15,19 @@ class UserStore:
     def get(self, username):
         return self.users.get(username, None)
 
+    def update_scopes(self, username, scopes):
+        self.users[username]['consented_scopes'] += ' ' + scopes
+
 
 user_store = UserStore()
 
 user_store.add({
     'username': 'mvandend',
     'password': 'p@ssW0rd!',
-    'consent_given': False,
+    'consented_scopes': '',
     'name': 'Marcel'})
 user_store.add({
     'username': 'testuser',
     'password': 'p@ssW0rd!',
-    'consent_given': True,
+    'consented_scopes': 'openid read write',
     'name': 'Test User'})

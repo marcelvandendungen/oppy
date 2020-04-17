@@ -38,6 +38,8 @@ def create_blueprint(client_store, public_key, private_key):
         session = authenticated_session(request.cookies.get('session'))
         if session:
             authorize_request = AuthorizeRequest.from_dictionary(request.args).process(client_store, session=session)
+            if not authorize_request.consent_given(authorize_request.scope):
+                return show_consent_page(authorize_request, request.cookies.get('session'))
             return redirect(authorize_request.redirection_url())
 
         return make_response(render_template('login.html', req=authorize_request.__dict__))
@@ -51,19 +53,11 @@ def create_blueprint(client_store, public_key, private_key):
         authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
         session = create_session_token(authorize_request)
         logger.info("Added auth request for: " + authorize_request.code)
-        if authorize_request.user_has_given_consent:
+        if authorize_request.consent_given(authorize_request.scope):
             resp = redirect(authorize_request.redirection_url())
             resp.set_cookie('session', session)
         else:
-            # store code by id
-            client = client_store.get(authorize_request.client_id)
-            id = consent_store.add(authorize_request.code)
-            resp = make_response(render_template('consent.html',
-                                 client_name=client['name'],
-                                 scopes=authorize_request.scope.split(' '),
-                                 id=id, client_id=authorize_request.client_id,
-                                 state=authorize_request.state))
-            resp.set_cookie('session', session)
+            return show_consent_page(authorize_request, session)
 
         return resp
 
@@ -71,7 +65,7 @@ def create_blueprint(client_store, public_key, private_key):
         now = int(time.time())
         claims = {
             'username': principal.username,
-            # 'name': principal.name,
+            'consented_scopes': principal.consented_scopes,
             'aud': 'https://localhost:5000',
             'iat': now,
             'nbf': now,
@@ -92,5 +86,17 @@ def create_blueprint(client_store, public_key, private_key):
         except jwt.ExpiredSignatureError:
             logger.info("Session cookie expired")
             return None
+
+    def show_consent_page(authorize_request, session):
+        # store code by id
+        client = client_store.get(authorize_request.client_id)
+        id = consent_store.add(authorize_request.code)
+        resp = make_response(render_template('consent.html',
+                             client_name=client['name'],
+                             scopes=authorize_request.scope.split(' '),
+                             id=id, client_id=authorize_request.client_id,
+                             state=authorize_request.state))
+        resp.set_cookie('session', session)
+        return resp
 
     return authorize_bp

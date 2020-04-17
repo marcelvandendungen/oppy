@@ -71,6 +71,7 @@ class AuthorizeRequest:
             password = self.require('password', BadAuthorizeRequestError('invalid_request',
                                                                          'password not found'))
             user_info = self.verify_user_credentials(username, password)
+            self.consented_scopes = user_info['consented_scopes']
             self.username = user_info['username']
         else:
             user_info = session
@@ -170,10 +171,11 @@ class AuthorizeRequest:
             raise error
         return getattr(self, key_name)
 
-    @property
-    def user_has_given_consent(self):
+    def consent_given(self, scope):
         auth_req = authorization_requests.get(self.code)
-        return auth_req['consent_given']
+        requested_scopes = set(scope.split(' '))
+        allowed_scopes = set(auth_req['consented_scopes'].split(' '))
+        return requested_scopes.issubset(allowed_scopes)
 
 
 def is_public(client):
