@@ -2,7 +2,8 @@ import base64
 import freezegun
 import jwt
 import pytest
-from urllib.parse import urlsplit, parse_qsl
+from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
+from util import create_url
 
 
 @pytest.mark.parametrize(('parameter'), ('grant_type', 'client_id', 'code'))
@@ -349,7 +350,6 @@ def test_token_endpoint_issues_id_token(test_client, confidential_client):
         assert token['exp'] == 1584190800
 
 
-@pytest.mark.skip("WIP")
 def test_token_endpoint_single_sign_on(test_client, confidential_client):
     """
         GIVEN:  Successful retrieval of tokens after sign in
@@ -357,54 +357,47 @@ def test_token_endpoint_single_sign_on(test_client, confidential_client):
         THEN:   auth code is issued without login screen being presented
     """
 
-    code, _ = authenticate_user(test_client, confidential_client, scope='openid')
-
-    client_id = confidential_client['client_id']
-    client_secret = confidential_client['client_secret']
-    plaintext = f'{client_id}:{client_secret}'
-
-    headers = {
-        'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
-    }
-    post_data = {
-        'grant_type': 'authorization_code',
-        'code': code,
-        'scope': 'openid',
-        'client_id': client_id
-    }
-
     with freezegun.freeze_time("2020-03-14 12:00:00"):
+        code, _ = authenticate_user(test_client, confidential_client, scope='openid')
+
+        client_id = confidential_client['client_id']
+        client_secret = confidential_client['client_secret']
+        plaintext = f'{client_id}:{client_secret}'
+
+        headers = {
+            'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
+        }
+        post_data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'scope': 'openid',
+            'client_id': client_id
+        }
+
         response = test_client.post('/token', headers=headers, data=post_data)
 
         assert response.status_code == 200
         assert response.headers['Content-Type'] == 'application/json'
-        assert response.json['expires_in'] == 3600
-        assert response.json['token_type'] == 'Bearer'
         token = decode_token(response.json['access_token'], audience='https://localhost:5000/')
         assert token['aud'] == 'https://localhost:5000/'
-        assert token['sub']
-        assert token['iat'] == 1584187200
-        assert token['nbf'] == 1584187200
-        assert token['exp'] == 1584190800
         assert response.json['refresh_token']
         token = decode_token(response.json['id_token'], audience=client_id)
         assert token['aud'] == client_id
-        assert token['name'] == 'Test User'
-        assert token['sub']
-        assert token['iat'] == 1584187200
-        assert token['nbf'] == 1584187200
-        assert token['exp'] == 1584190800
 
-        form_vars = {
-            'client_id': client_id,
-            'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
-            'scope': 'read write'
-        }
+    with freezegun.freeze_time("2020-03-14 12:45:00"):
+        # issue authorization request for different scope
+        url = create_url('/authorize', client_id=confidential_client['client_id'],
+                         redirect_uri=confidential_client['redirect_uris'][0], response_type='code',
+                         state='96f07e0b-992a-4b5e-a61a-228bd9cfad35', scope='read write')
+        response = test_client.get(url)
 
-        response = test_client.post('/authorize', data=form_vars)
-
-        assert response.status_code == 200
-        assert response.headers['Content-Type'].startswith('text/html')
+        # expect code to be issued without prompt for login
+        assert response.status_code == 302
+        parsed_uri = urlparse(response.headers['Location'])
+        assert '{uri.scheme}://{uri.netloc}{uri.path}'.format(uri=parsed_uri) == confidential_client['redirect_uris'][0]
+        query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+        assert query_params['code']
+        assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
 
 
 def decode_token(encoded, audience='urn:my_service'):

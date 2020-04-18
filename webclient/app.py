@@ -207,7 +207,7 @@ def authorization_header():
 
 def get_token_claims(token, audience):
     logger.info(token)
-    claims = jwt.decode(str.encode(token), public_key, audience=audience, algorithm=['RS256'])
+    claims = jwt.decode(str.encode(token), public_key, audience=audience, algorithms='RS256')
     return claims
 
 

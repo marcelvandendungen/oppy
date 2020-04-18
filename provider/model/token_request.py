@@ -69,9 +69,8 @@ class TokenRequest:
 
     def generate_token(self, auth_request, private_key, add_claims):
         now = int(time.time())
-        subject = auth_request['id'] if 'id' in auth_request else auth_request['username']
         claims = {
-            'sub': subject,
+            'sub': auth_request['id'],
             'iss': self.issuer,
             'iat': now,
             'nbf': now,
@@ -86,13 +85,12 @@ class TokenRequest:
 
     def create_refresh_token(self, client_id, auth_request):
         now = int(time.time())
-        subject = auth_request['id'] if 'id' in auth_request else auth_request['username']
         refresh_token = crypto.generate_refresh_token()
 
         payload = {
             'client_id': client_id,
             'expires': now + ONE_WEEK,
-            'id': subject,
+            'id': auth_request['id'],
             'scope': auth_request['scope']
         }
 

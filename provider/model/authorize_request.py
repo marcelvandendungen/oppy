@@ -73,6 +73,7 @@ class AuthorizeRequest:
             user_info = self.verify_user_credentials(username, password)
             self.consented_scopes = user_info['consented_scopes']
             self.username = user_info['username']
+            self.id = user_info['username']
         else:
             user_info = session
 

@@ -38,7 +38,7 @@ def process_consent_request(client_store):
         # check if consent granted
         if request.form.get('approve'):
             # store consent in user store
-            user_store.update_scopes(authorize_request.username, request.form.get('scopes'))
+            user_store.update_scopes(authorize_request.id, request.form.get('scopes'))
             # redirect to client with query parameters
             return redirect(authorize_request.redirection_url())
         else:

@@ -80,8 +80,8 @@ def create_blueprint(client_store, public_key, private_key):
             if not token:
                 logger.info("Session cookie not found")
                 return None
-            claims = jwt.decode(str.encode(token), public_key, audience='https://localhost:5000', algorithm=['RS256'])
-            logger.warn("Session cookie is valid")
+            claims = jwt.decode(str.encode(token), public_key, audience='https://localhost:5000', algorithms='RS256')
+            logger.info("Session cookie is valid")
             return claims
         except jwt.ExpiredSignatureError:
             logger.info("Session cookie expired")

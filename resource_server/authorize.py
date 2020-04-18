@@ -34,7 +34,7 @@ def validate_auth_header(headers, audience, scopes):
     if scheme.lower() != 'bearer':
         raise AuthorizeError('Authorization scheme not supported', 401)
     claims = jwt.decode(str.encode(token), public_key,
-                        audience=audience, algorithm=['RS256'])
+                        audience=audience, algorithms='RS256')
 
     required_scopes = set(scopes.split(' '))
     logger.info('required scopes: ' + ' '.join(required_scopes))
