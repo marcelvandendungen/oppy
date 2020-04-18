@@ -52,7 +52,7 @@ class AuthorizeRequest:
 
         self.override_redirect_uri(client)
 
-        self.validate_scopes(client)
+        self.scope = self.validate_scopes(client)
 
         self.validate_pkce(client)
 
@@ -87,6 +87,8 @@ class AuthorizeRequest:
 
         request_info.update(user_info)
         authorization_requests.add(request_info)
+
+        self.scope = self.validate_scopes(client)
 
         return self
 
@@ -138,11 +140,13 @@ class AuthorizeRequest:
             self.redirect_uri = registered_uris[0]
 
     def validate_scopes(self, client):
+        allowed_scopes = set(client['scope'].split(' '))
         if hasattr(self, 'scope'):
             requested_scopes = set(self.scope.split(' '))
-            allowed_scopes = set(client['scope'].split(' '))
             if not requested_scopes.issubset(allowed_scopes):
                 raise AuthorizeRequestError('invalid_scope', 'One or more scopes are invalid')
+            return self.scope     # only prompt for requested scopes
+        return client['scope']   # when no scope specified, assume all scopes registered are requested
 
     def validate_pkce(self, client):
         """

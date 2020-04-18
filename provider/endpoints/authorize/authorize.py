@@ -64,7 +64,7 @@ def create_blueprint(client_store, public_key, private_key):
     def create_session_token(principal):
         now = int(time.time())
         claims = {
-            'username': principal.username,
+            'id': principal.username,
             'consented_scopes': principal.consented_scopes,
             'aud': 'https://localhost:5000',
             'iat': now,

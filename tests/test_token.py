@@ -322,7 +322,7 @@ def test_token_endpoint_issues_id_token(test_client, confidential_client):
     post_data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'scope': 'read write, openid',
+        'scope': 'openid',
         'client_id': client_id
     }
 
@@ -333,8 +333,8 @@ def test_token_endpoint_issues_id_token(test_client, confidential_client):
         assert response.headers['Content-Type'] == 'application/json'
         assert response.json['expires_in'] == 3600
         assert response.json['token_type'] == 'Bearer'
-        token = decode_token(response.json['access_token'])
-        assert token['aud'] == 'urn:my_service'
+        token = decode_token(response.json['access_token'], audience='https://localhost:5000/')
+        assert token['aud'] == 'https://localhost:5000/'
         assert token['sub']
         assert token['iat'] == 1584187200
         assert token['nbf'] == 1584187200

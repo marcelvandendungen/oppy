@@ -32,7 +32,7 @@ def confidential_client(test_client):
         ],
         'token_endpoint_auth_method': 'client_secret_basic',
         'name': 'confidential_client',
-        'scope': "read write"
+        'scope': "openid read write"
     }
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     if response.status_code == 201:
