@@ -1,5 +1,6 @@
 import logging
 import yaml
+from urllib.parse import urlencode  # , urlparse, urlsplit, parse_qsl
 
 
 def init_logging(name):
@@ -18,3 +19,7 @@ def require(parameters, key_name, error):
 def init_config(path):
     config = yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
     return config
+
+
+def create_url(path, **query_params):
+    return path + '?' + urlencode(query_params)

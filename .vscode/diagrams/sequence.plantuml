@@ -10,6 +10,7 @@ end box
 
 box "client application" #f5fff5
 participant Webclient order 30
+database tokencache order 35
 end box
 
 box "authorization server" #f5fff5
@@ -17,6 +18,7 @@ participant AuthSvr order 40
 database authRequests order 45
 database clients order 50
 database users order 60
+database consent order 70
 end box
 
 box "resource server" #f5fff5
@@ -27,43 +29,39 @@ Browser -> Webclient: GET /
 
 group Webclient
 Browser <-- Webclient: 302 https://localhost:5000/authorize?client_id=...
-Browser -> AuthSvr: GET /authorize?client_id=...&scope=openid&...
+Browser -> AuthSvr: GET /authorize?client_id=...&scope=read%20write&...
+AuthSvr <- clients: client by client_id
 end
 
 group AuthSvr
 Browser <-- AuthSvr: 200 OK login.html
 Browser -> AuthSvr: POST user creds
+AuthSvr <- clients: client by client_id
+AuthSvr <- users: user by username
 AuthSvr -> authRequests: request
+note right: key=code
+AuthSvr -> consent: code by id
 Browser <-- AuthSvr: 200 OK consent.html
 Browser -> Cookies: session cookie
 Browser -> AuthSvr: POST consent
+AuthSvr <- consent: code by id
+AuthSvr -> users: update user consent
 Browser <-- AuthSvr: 302 https://localhost:5001/cb?code=...&state=...
 Browser -> Webclient: GET /cb?code=...&state=...
 end
 
 Webclient -> AuthSvr: POST /token
+AuthSvr <- authRequests: request by code
+AuthSvr <- clients: client by client_id
+AuthSvr -> authRequests: remove code
 Webclient <-- AuthSvr: 200 ID token + access token
+Webclient -> tokencache: tokens
 
-group Webclient
-Browser <-- Webclient: 302 https://localhost:5000/authorize?client_id=...&scope=read%20write&...
-Browser -> AuthSvr: GET /authorize?client_id=...&scope=read%20write&...
-end
-
-group AuthSvr
-Browser <-- AuthSvr: 200 OK consent.html
-Browser -> AuthSvr: POST consent
-Browser <-- AuthSvr: 302 https://localhost:5001/cb?code=...&state=...
-Browser -> Webclient: GET /cb?code=...&state=...
-end
-
-Webclient -> AuthSvr: POST /token
-Webclient <-- AuthSvr: 200 access token
-
+Webclient <- tokencache: access_token
 Webclient -> ResourceSvr: GET /resource
-Webclient <-- ResourceSvr: 200 OK JSON
+Webclient <-- ResourceSvr: 200 OK <resource>
 
 group Webclient
-Browser <-- Webclient: 200 index.html
+Browser <-- Webclient: 200 OK index.html
 end
-
 @enduml

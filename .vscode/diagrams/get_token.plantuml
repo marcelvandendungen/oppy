@@ -1,0 +1,22 @@
+@startuml
+title get token(s)
+
+start
+:POST /token;
+:Validate form parameters;
+:Issue access token;
+if (client is public?) then (yes)
+    :Issue refresh token;
+else
+    ->no;
+endif
+
+if (openid in scope?) then (yes)
+    :Issue id_token;
+else
+    ->no;
+endif
+
+->response;
+stop
+@enduml

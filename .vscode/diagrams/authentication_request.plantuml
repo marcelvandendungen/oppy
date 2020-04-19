@@ -1,0 +1,16 @@
+@startuml
+title authentication request
+
+start
+:POST /authorize;
+:Validate form parameters;
+:Authenticate user;
+if (consent given?) then (yes)
+    :Issue code;
+else (no)
+    :show consent page;
+endif
+
+->response;
+stop
+@enduml

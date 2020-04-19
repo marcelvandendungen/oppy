@@ -1,0 +1,19 @@
+@startuml
+title authorization request
+
+start
+:GET /authorize;
+:Validate query parameters;
+if (session exists?) then (yes)
+    if (consent given?) then (yes)
+        :Issue code;
+    else (no)
+        :show consent page;
+    endif
+else (no)
+    :show login page;
+endif
+
+->response;
+stop
+@enduml

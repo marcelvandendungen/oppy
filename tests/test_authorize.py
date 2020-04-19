@@ -5,6 +5,7 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
 from provider.model.crypto import generate_verifier, generate_challenge
+from util import create_url
 
 
 def test_missing_client_id_results_in_error(test_client):
@@ -336,7 +337,3 @@ def test_post_to_authorize_with_non_consented_user_returns_consent_page(test_cli
     checkboxes = soup.findAll('input', dict(name='scopes'))
     assert 'read' in checkboxes[0].nextSibling
     assert 'write' in checkboxes[1].nextSibling
-
-
-def create_url(path, **query_params):
-    return path + '?' + urlencode(query_params)
