@@ -182,6 +182,12 @@ class AuthorizeRequest:
         allowed_scopes = set(auth_req['consented_scopes'].split(' '))
         return requested_scopes.issubset(allowed_scopes)
 
+    @property
+    def form_post_response(req):
+        if hasattr(req, 'response_mode'):
+            return req.response_mode == 'form_post'
+        return False
+
 
 def is_public(client):
     return 'token_endpoint_auth_method' in client and client['token_endpoint_auth_method'] == 'None'

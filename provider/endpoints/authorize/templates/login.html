@@ -40,6 +40,9 @@
                 <input type="hidden" name="code_challenge_method" value="{{req.code_challenge_method}}">
                 {% endif %}
                 <input type="hidden" name="redirect_uri" value="{{req.redirect_uri}}">
+                {% if 'response_mode' in req %}
+                <input type="hidden" name="response_mode" value="{{req.response_mode}}">
+                {% endif %}
             </form>
         </div>
     </div>

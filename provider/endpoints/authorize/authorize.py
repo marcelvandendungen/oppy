@@ -54,7 +54,11 @@ def create_blueprint(client_store, public_key, private_key):
         session = create_session_token(authorize_request)
         logger.info("Added auth request for: " + authorize_request.code)
         if authorize_request.consent_given(authorize_request.scope):
-            resp = redirect(authorize_request.redirection_url())
+            if authorize_request.form_post_response:
+                resp = make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
+                                                     state=authorize_request.state, code=authorize_request.code))
+            else:
+                resp = redirect(authorize_request.redirection_url())
             resp.set_cookie('session', session)
         else:
             return show_consent_page(authorize_request, session)

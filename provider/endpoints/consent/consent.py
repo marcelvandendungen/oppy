@@ -1,6 +1,6 @@
 from provider.model.user_store import user_store
 from provider.model.authorize_request import AuthorizeRequest
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request, redirect, make_response, render_template
 from provider.model.authorization_request_store import authorization_requests
 from provider.model.consent_store import consent_store
 from util import init_logging
@@ -39,6 +39,10 @@ def process_consent_request(client_store):
         if request.form.get('approve'):
             # store consent in user store
             user_store.update_scopes(authorize_request.id, request.form.get('scopes'))
+            if authorize_request.form_post_response:
+                return make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
+                                                     state=authorize_request.state, code=authorize_request.code))
+
             # redirect to client with query parameters
             return redirect(authorize_request.redirection_url())
         else:

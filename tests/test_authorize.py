@@ -337,3 +337,28 @@ def test_post_to_authorize_with_non_consented_user_returns_consent_page(test_cli
     checkboxes = soup.findAll('input', dict(name='scopes'))
     assert 'read' in checkboxes[0].nextSibling
     assert 'write' in checkboxes[1].nextSibling
+
+
+def test_post_to_authorize_issues_code_using_form_post(test_client, confidential_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all required form variables are present and correct, includes response_mode=form_post
+        THEN:   response is 200 OK with auto-submit form posting to redirect_uri with code and state form fields
+    """
+
+    client = confidential_client
+    form_vars = {
+        'client_id': client['client_id'],
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'testuser',
+        'password': 'p@ssW0rd!',
+        'response_mode': 'form_post'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 200
+    assert response.headers['Content-Type'].startswith('text/html')
+
+    soup = BeautifulSoup(response.data, features="html.parser")
+    assert soup.find('input', dict(name='code'))['value']
+    assert soup.find('input', dict(name='state'))['value'] == form_vars['state']

@@ -116,22 +116,27 @@ def authorize_request(client, scope):
     state = str(uuid.uuid4())
     scopes[state] = scope
     return redirect(request_url('https://localhost:5000/authorize', client_id=client_id, redirect_uri=redirect_uri,
-                                response_type='code', state=state, scope=scope))
+                                response_type='code', state=state, scope=scope, response_mode='form_post'))
 
 
 def request_url(url, **query_params):
     return url + '?' + urlencode(query_params)
 
 
-@app.route("/cb")
+@app.route("/cb", methods=["GET", "POST"])
 def auth_code():
     error = request.args.get('error')
     if error:
         return render_template('error.html', error=error)
 
-    code = request.args.get('code')
+    if request.method == 'GET':
+        code = request.args.get('code')
+        state = request.args.get('state')
+    elif request.method == 'POST':
+        code = request.form.get('code')
+        state = request.form.get('state')
+
     logger.warning('code = ' + code)
-    state = request.args.get('state')
     # get token using auth code
     get_tokens(code, state)
     # store access_token as cookie
