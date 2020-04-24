@@ -1,6 +1,7 @@
 <html>
    <head><title>Submit This Form</title></head>
    <body onload="javascript:document.forms[0].submit()">
+    <p>Please click submit to complete the authentication.</p>
     <form method="post" action="{{redirect_uri}}">
       <input type="hidden" name="state" value="{{state}}" />
       <input type="hidden" name="code" value="{{code}}" />
