@@ -155,7 +155,7 @@ class AuthorizeRequest:
         """
         if is_public(client):
             self.require('code_challenge', AuthorizeRequestError('invalid_request', 'code challenge required'))
-            if not self.code_challenge_method:
+            if not hasattr(self, 'code_challenge_method'):
                 self.code_challenge_method = 'plain'
 
             if self.code_challenge_method != "S256":
