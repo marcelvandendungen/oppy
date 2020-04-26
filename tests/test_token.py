@@ -2,7 +2,7 @@ import base64
 import freezegun
 import jwt
 import pytest
-from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
+from urllib.parse import urlparse, urlsplit, parse_qsl
 from util import create_url
 
 

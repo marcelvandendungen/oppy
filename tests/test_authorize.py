@@ -3,7 +3,7 @@
 """
 
 from bs4 import BeautifulSoup
-from urllib.parse import urlencode, urlparse, urlsplit, parse_qsl
+from urllib.parse import urlparse, urlsplit, parse_qsl
 from provider.model.crypto import generate_verifier, generate_challenge
 from util import create_url
 

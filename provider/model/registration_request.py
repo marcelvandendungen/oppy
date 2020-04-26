@@ -57,7 +57,7 @@ class RegistrationRequest:
 
     @classmethod
     def from_dictionary(cls, parameters):
-        return RegistrationRequest(parameters)
+        return cls(parameters)
 
     @property
     def client(self):

@@ -25,6 +25,7 @@
         "outform",
         "pubout",
         "pytest",
+        "scim",
         "userinfo",
         "vschar"
     ],

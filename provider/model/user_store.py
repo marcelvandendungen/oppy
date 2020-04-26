@@ -1,3 +1,5 @@
+from requests.structures import CaseInsensitiveDict
+
 
 class UserStore:
     """
@@ -5,11 +7,10 @@ class UserStore:
     """
 
     def __init__(self):
-        self.users = {}
+        self.users = CaseInsensitiveDict()
 
     def add(self, info):
-
-        self.users[info['username']] = info
+        self.users[info.get('id')] = info
         return id
 
     def get(self, username):
@@ -22,11 +23,13 @@ class UserStore:
 user_store = UserStore()
 
 user_store.add({
+    'id': 'hh1FRC4TNg',
     'username': 'mvandend',
     'password': 'p@ssW0rd!',
     'consented_scopes': '',
     'name': 'Marcel'})
 user_store.add({
+    'id': 'rii8EHQPrx',
     'username': 'testuser',
     'password': 'p@ssW0rd!',
     'consented_scopes': 'openid read write',

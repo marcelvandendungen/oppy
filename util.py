@@ -1,3 +1,4 @@
+import datetime
 import logging
 import yaml
 from urllib.parse import urlencode  # , urlparse, urlsplit, parse_qsl
@@ -23,3 +24,8 @@ def init_config(path):
 
 def create_url(path, **query_params):
     return path + '?' + urlencode(query_params)
+
+
+def get_iso_datetime():
+    d = datetime.datetime.utcnow()
+    return d.isoformat("T") + "Z"

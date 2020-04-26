@@ -36,7 +36,7 @@ class AuthorizeRequest:
 
     @classmethod
     def from_dictionary(cls, parameters):
-        return AuthorizeRequest(parameters)
+        return cls(parameters)
 
     def validate(self, client_store):
         "Handles initial redirect to OP, validates query parameters"
