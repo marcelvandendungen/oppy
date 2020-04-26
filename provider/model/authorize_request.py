@@ -162,7 +162,7 @@ class AuthorizeRequest:
                 raise AuthorizeRequestError(302, 'invalid_request', 'Invalid code challenge method')
 
     def verify_user_credentials(self, username, password):
-        user_info = user_store.get(username)
+        user_info = user_store.get_by_name(username)
         if not user_info or user_info['password'] != password:
             raise BadAuthorizeRequestError('invalid_request', 'username or password incorrect')
         return user_info

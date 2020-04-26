@@ -3,18 +3,24 @@ from requests.structures import CaseInsensitiveDict
 
 class UserStore:
     """
-      Simple in-memory store for user info
+      Simple in-memory store for user info. Attribute names are case-insensitive.
+      Users can be retrieved by id or username
     """
 
     def __init__(self):
         self.users = CaseInsensitiveDict()
+        self.names = CaseInsensitiveDict()
 
     def add(self, info):
         self.users[info.get('id')] = info
+        self.names[info.get('username')] = info
         return id
 
-    def get(self, username):
-        return self.users.get(username, None)
+    def get_by_id(self, id):
+        return self.users.get(id, None)
+
+    def get_by_name(self, username):
+        return self.names.get(username, None)
 
     def update_scopes(self, username, scopes):
         self.users[username]['consented_scopes'] += ' ' + scopes

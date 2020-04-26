@@ -24,20 +24,22 @@ def create_blueprint():
 
     @scim_bp.route('/scim/v2/Users/<string:user_id>', methods=['GET'])
     def get_user(user_id):
-        user = user_store.get(user_id)
+        user = user_store.get_by_id(user_id)
         if not user:
             return 404, 'Not found'
         scim_user = ScimUser.create_from(user, request.host_url)
-        return make_scim_response(200, dict(scim_user.items()))
+        return make_scim_response(200, dict(scim_user.items()), user.get_etag())
 
     def create_user(parameters):
         user = ScimUser.create_from(request.json, request.host_url)
         user_store.add(user)
-        return make_scim_response(201, dict(user.items()))
+        return make_scim_response(201, dict(user.items()), user.get_etag())
 
-    def make_scim_response(code, data):
+    def make_scim_response(code, data, etag=None):
         resp = make_response(jsonify(data))
         resp.headers['Content-Type'] = 'application/scim+json'
+        if etag:
+            resp.headers['ETag'] = etag
         return resp, code
 
     return scim_bp
