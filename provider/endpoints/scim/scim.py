@@ -1,16 +1,19 @@
 from provider.model.scim_user import ScimUser
 from provider.model.user_store import user_store
+from provider.model.authorize import authorize
 
 from flask import Blueprint, request, make_response, jsonify
 from util import init_logging
 
 logger = init_logging(__name__)
+AUDIENCE = 'scim_service'
 
 
 def create_blueprint():
     scim_bp = Blueprint('scim_bp', __name__, template_folder='templates')
 
     @scim_bp.route('/scim/v2/User', methods=["POST"])
+    @authorize(audience=AUDIENCE, scopes='create_user')
     def user():
         try:
             if request.method == 'GET':
@@ -23,6 +26,7 @@ def create_blueprint():
             return "Error occurred: " + ex.error_description, 400
 
     @scim_bp.route('/scim/v2/Users/<string:user_id>', methods=['GET'])
+    @authorize(audience=AUDIENCE, scopes='get_user')
     def get_user(user_id):
         user = user_store.get_by_id(user_id)
         if not user:

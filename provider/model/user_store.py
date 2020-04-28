@@ -8,8 +8,8 @@ class UserStore:
     """
 
     def __init__(self):
-        self.users = CaseInsensitiveDict()
-        self.names = CaseInsensitiveDict()
+        self.users = CaseInsensitiveDict()  # key = id
+        self.names = CaseInsensitiveDict()  # key = username
 
     def add(self, info):
         self.users[info.get('id')] = info

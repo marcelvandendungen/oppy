@@ -1,3 +1,4 @@
+import jwt
 import os
 import sys
 
@@ -10,7 +11,8 @@ from provider.endpoints.metadata.metadata import create_blueprint as create_meta
 from provider.endpoints.consent.consent import create_blueprint as create_consent_blueprint
 from provider.endpoints.scim.scim import create_blueprint as create_scim_blueprint
 from provider.model.client_store import client_store
-from util import init_config
+from util import init_config, init_logging
+from provider.model.authorize import AuthorizeError
 
 
 def read_pem(filename):
@@ -35,6 +37,7 @@ def init_crypto():
 
 
 config = init_config('config.yml')
+logger = init_logging(__name__)
 
 keypair = init_crypto()
 app = Flask(__name__, static_url_path='')
@@ -47,6 +50,14 @@ app.register_blueprint(create_jwk_blueprint())
 app.register_blueprint(create_metadata_blueprint(config))
 app.register_blueprint(create_consent_blueprint(config))
 app.register_blueprint(create_scim_blueprint())
+
+
+@app.errorhandler(Exception)
+def error_handler(ex):
+    if isinstance(ex, (jwt.ExpiredSignatureError, jwt.DecodeError, AuthorizeError)):
+        logger.error(str(ex))
+        return str(ex), 401
+    return str(ex), 500
 
 
 def main():
