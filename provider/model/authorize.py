@@ -52,8 +52,11 @@ def authorize(audience, scopes):
     def decorator(func):
         @wraps(func)
         def decorated(*args, **kwargs):
-            claims = validate_auth_header(request.headers, audience, scopes)
-            request.view_args['claims'] = claims
-            return func(*args, **kwargs)
+            try:
+                claims = validate_auth_header(request.headers, audience, scopes)
+                request.view_args['claims'] = claims
+                return func(*args, **kwargs)
+            except Exception as ex:
+                raise AuthorizeError('authorize failed', 401) from ex
         return decorated
     return decorator

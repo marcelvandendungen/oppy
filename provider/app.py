@@ -54,8 +54,8 @@ app.register_blueprint(create_scim_blueprint())
 
 @app.errorhandler(Exception)
 def error_handler(ex):
+    logger.exception(ex)
     if isinstance(ex, (jwt.ExpiredSignatureError, jwt.DecodeError, AuthorizeError)):
-        logger.error(str(ex))
         return str(ex), 401
     return str(ex), 500
 

@@ -34,11 +34,7 @@ def confidential_client(test_client):
         'name': 'confidential_client',
         'scope': "openid read write"
     }
-    response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
-    if response.status_code == 201:
-        return response.json
-
-    raise FixtureError('Error registering client')
+    return register_client(test_client, payload)
 
 
 @pytest.fixture(scope='session')
@@ -50,11 +46,7 @@ def public_client(test_client):
         'name': 'public_client',
         'scope': "read write"
     }
-    response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
-    if response.status_code == 201:
-        return response.json
-
-    raise FixtureError('Error registering client')
+    return register_client(test_client, payload)
 
 
 @pytest.fixture(scope='session')
@@ -71,6 +63,23 @@ def confidential_client_post(test_client):
         'name': 'confidential_client',
         'scope': "read write"
     }
+    return register_client(test_client, payload)
+
+
+@pytest.fixture(scope='session')
+def scim_client(test_client):
+    payload = {
+        'grant_types': [
+            'client_credentials'
+        ],
+        'token_endpoint_auth_method': 'client_secret_basic',
+        'name': 'scim_client',
+        'scope': "create_user get_user"
+    }
+    return register_client(test_client, payload)
+
+
+def register_client(test_client, payload):
     response = test_client.post('/register', data=json.dumps(payload), content_type='application/json')
     if response.status_code == 201:
         return response.json

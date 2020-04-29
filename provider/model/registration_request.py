@@ -16,10 +16,6 @@ class RegistrationRequest:
     def __init__(self, parameters):
         self.parameters = parameters.copy()
 
-        # check mandatory parameter
-        if 'redirect_uris' not in parameters:
-            raise RegistrationError('invalid_redirect_uri', 'redirect_uris is missing')
-
         # TODO: reject any redirect_uris that have http protocol and hostname other than localhost
 
         # set proper defaults if parameter omitted
@@ -30,6 +26,12 @@ class RegistrationRequest:
         # remove anything passed by caller we do not support
         self.remove_unsupported('grant_types', 'implicit')
         self.remove_unsupported('grant_types', 'password')
+
+        # if client supports redirection flow, redirect_uris is mandatory
+        if 'authorization_code' in self.parameters['grant_types']:
+            if 'redirect_uris' not in parameters:
+                raise RegistrationError('invalid_redirect_uri', 'redirect_uris is missing')
+
 
         # generate response parameters
         self.parameters['client_id'] = str(crypto.generate_client_id())
