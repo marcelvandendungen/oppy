@@ -6,7 +6,7 @@ from flask import Blueprint, request, make_response, jsonify
 from util import init_logging
 
 logger = init_logging(__name__)
-AUDIENCE = 'scim_service'
+AUDIENCE = 'https://localhost:5000/'
 
 
 def create_blueprint():

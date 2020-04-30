@@ -31,7 +31,12 @@ class TokenRequest:
 
     def create_response(self, request):
         principal, client = self.validate(request)
-        audience = 'https://localhost:5000/' if 'openid' in principal['scope'] else 'urn:my_service'
+
+        scopes = principal['scope']
+        if set(scopes.split(' ')).issubset(set('read write'.split(' '))):
+            audience = 'urn:my_service'
+        else:
+            audience = 'https://localhost:5000/'
         token = self.issue_access_token(principal, audience)
         payload = {
             'access_token': token.decode("utf-8"),
