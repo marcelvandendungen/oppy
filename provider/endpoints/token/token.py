@@ -33,4 +33,3 @@ def create_blueprint(client_store, private_key, config):
             return response, 400
 
     return token_bp
-

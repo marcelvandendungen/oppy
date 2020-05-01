@@ -1,4 +1,5 @@
 from provider.app import app
+from provider.endpoints.scim.scim import USER_PATH
 
 import json
 import pytest
@@ -77,6 +78,31 @@ def scim_client(test_client):
         'scope': "create_user get_user"
     }
     return register_client(test_client, payload)
+
+
+@pytest.fixture(scope='session')
+def scim_token(test_client, scim_client):
+    data = {
+        'grant_type': 'client_credentials',
+        'client_id': scim_client['client_id'],
+        'client_secret': scim_client['client_secret']
+    }
+    response = test_client.post('/token', data=data, content_type='application/x-www-form-urlencoded')
+    assert response.status_code == 200
+    return response.json['access_token']
+
+
+@pytest.fixture(scope='session')
+def scim_user(test_client, scim_client, scim_token):
+    header = {
+        'Authorization': 'Bearer ' + scim_token
+    }
+    data = {
+        'username': 'mcescher'
+    }
+    response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
+    assert response.status_code == 201
+    return response.json
 
 
 def register_client(test_client, payload):

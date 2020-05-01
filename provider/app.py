@@ -49,7 +49,7 @@ app.register_blueprint(create_register_blueprint(client_store))
 app.register_blueprint(create_jwk_blueprint())
 app.register_blueprint(create_metadata_blueprint(config))
 app.register_blueprint(create_consent_blueprint(config))
-app.register_blueprint(create_scim_blueprint())
+app.register_blueprint(create_scim_blueprint(config))
 
 
 @app.errorhandler(Exception)

@@ -32,7 +32,6 @@ class RegistrationRequest:
             if 'redirect_uris' not in parameters:
                 raise RegistrationError('invalid_redirect_uri', 'redirect_uris is missing')
 
-
         # generate response parameters
         self.parameters['client_id'] = str(crypto.generate_client_id())
         self.parameters['client_id_issued_at'] = self.epoch()

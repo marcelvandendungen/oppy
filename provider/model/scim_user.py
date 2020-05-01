@@ -43,7 +43,6 @@ class ScimUser(CaseInsensitiveDict):
 
         return get_iso_datetime() if field not in data['meta'] else data['meta'][field]
 
-
     @staticmethod
     def get_location(prefix, id):
         return urllib.parse.urljoin(prefix, str(id))
