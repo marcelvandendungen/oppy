@@ -1,5 +1,7 @@
 from provider.model.scim_user import ScimUser, ScimError
+from provider.model.scim_group import ScimGroup
 from provider.model.user_store import user_store
+from provider.model.group_store import group_store
 from provider.model.authorize import authorize
 
 from flask import Blueprint, request, make_response, jsonify, abort
@@ -9,6 +11,7 @@ logger = init_logging(__name__)
 AUDIENCE = 'https://localhost:5000/'
 SCIM_PATH = '/scim/v2/'
 USER_PATH = SCIM_PATH + 'Users'
+GROUP_PATH = SCIM_PATH + 'Groups'
 
 
 def create_blueprint(config):
@@ -38,10 +41,39 @@ def create_blueprint(config):
             logger.exception("Exception occurred: " + str(ex))
             return "Error occurred: " + ex.error_description, 400
 
+    @scim_bp.route(GROUP_PATH + '/<string:group_id>', methods=['GET'])
+    @authorize(audience=AUDIENCE, scopes='get_group')
+    def get_group(group_id):
+        try:
+            group = group_store.get_by_id(group_id)
+            if not group:
+                return 404, 'Not found'
+            scim_group = ScimGroup.create_from(group, config['endpoints']['issuer'])
+            return make_scim_response(200, dict(scim_group.items()), group.get_etag())
+        except ScimError as ex:
+            scim_abort(ex)
+
+    @scim_bp.route(GROUP_PATH, methods=["POST"])
+    @authorize(audience=AUDIENCE, scopes='create_group')
+    def group():
+        try:
+            return create_group(request.form)
+
+        except ScimError as ex:
+            scim_abort(ex)
+        except Exception as ex:
+            logger.exception("Exception occurred: " + str(ex))
+            return "Error occurred: " + ex.error_description, 400
+
     def create_user(parameters):
         user = ScimUser.create_from(request.json, config['endpoints']['issuer'])
         user_store.add(user)
         return make_scim_response(201, dict(user.items()), user.get_etag())
+
+    def create_group(parameters):
+        group = ScimGroup.create_from(request.json, config['endpoints']['issuer'])
+        group_store.add(group)
+        return make_scim_response(201, dict(group.items()), group.get_etag())
 
     def make_scim_response(code, data, etag=None):
         resp = make_response(jsonify(data))

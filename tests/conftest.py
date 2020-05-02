@@ -1,5 +1,5 @@
 from provider.app import app
-from provider.endpoints.scim.scim import USER_PATH
+from provider.endpoints.scim.scim import USER_PATH, GROUP_PATH
 
 import json
 import pytest
@@ -75,7 +75,7 @@ def scim_client(test_client):
         ],
         'token_endpoint_auth_method': 'client_secret_basic',
         'name': 'scim_client',
-        'scope': "create_user get_user"
+        'scope': "create_user get_user create_group get_group"
     }
     return register_client(test_client, payload)
 
@@ -102,6 +102,20 @@ def scim_user(test_client, scim_client, scim_token):
         'username': 'mcescher'
     }
     response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
+    assert response.status_code == 201
+    return response.json
+
+
+@pytest.fixture(scope='session')
+def scim_group(test_client, scim_client, scim_token):
+    header = {
+        'Authorization': 'Bearer ' + scim_token
+    }
+    data = {
+        'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+        'displayName': 'test_grp'
+    }
+    response = test_client.post(GROUP_PATH, data=json.dumps(data), headers=header, content_type='application/json')
     assert response.status_code == 201
     return response.json
 
