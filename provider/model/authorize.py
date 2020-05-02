@@ -55,8 +55,8 @@ def authorize(audience, scopes):
             try:
                 claims = validate_auth_header(request.headers, audience, scopes)
                 request.view_args['claims'] = claims
-                return func(*args, **kwargs)
             except Exception as ex:
                 raise AuthorizeError('authorize failed', 401) from ex
+            return func(*args, **kwargs)
         return decorated
     return decorator

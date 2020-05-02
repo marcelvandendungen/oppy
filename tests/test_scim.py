@@ -26,6 +26,27 @@ def test_scim_invalid_auth_header(test_client, scim_client):
     assert response.status_code == 401
 
 
+def test_scim_create_user_failed(test_client, scim_client, scim_token):
+    """
+        GIVEN:  POST request to the /scim/v2/User endpoint
+        WHEN:   Authorization header is valid, but schemas field is missing from post data
+        THEN:   server responds with 400 Bad Request and SCIM error representation
+    """
+
+    header = {
+        'Authorization': 'Bearer ' + scim_token
+    }
+    data = {
+        'username': 'jcruyff'
+    }
+    response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
+    assert response.status_code == 400
+    assert response.json['schemas'] == ['urn:ietf:params:scim:api:messages:2.0:Error']
+    assert response.json['status'] == str(response.status_code)
+    assert response.json['detail'] == 'Unsupported schema'
+    assert response.json['scimType'] == 'invalidValue'
+
+
 # @pytest.mark.skip(reason="WIP")
 def test_scim_create_user(test_client, scim_client, scim_token):
     """
@@ -38,6 +59,7 @@ def test_scim_create_user(test_client, scim_client, scim_token):
         'Authorization': 'Bearer ' + scim_token
     }
     data = {
+        'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
         'username': 'jcruyff'
     }
     response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')

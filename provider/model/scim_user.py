@@ -5,9 +5,20 @@ from provider.model.crypto import generate_code
 from requests.structures import CaseInsensitiveDict
 
 
+class ScimError(Exception):
+    def __init__(self, status, detail=None, scim_type=None):
+        self.status = status
+        self.detail = detail
+        self.scim_type = scim_type
+
+
 class ScimUser(CaseInsensitiveDict):
     def __init__(self, data, host_url):
         super().__init__(data)
+
+        if 'schemas' not in data or 'urn:ietf:params:scim:schemas:core:2.0:User' not in data['schemas']:
+            raise ScimError(400, detail='Unsupported schema', scim_type='invalidValue')
+
         user_id = generate_code(10) if 'id' not in data else data['id']
         created = self.get_date(data, 'created')
         modified = self.get_date(data, 'modified')
