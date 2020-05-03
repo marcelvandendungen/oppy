@@ -6,6 +6,11 @@ Please DO NOT USE IN PRODUCTION!
 
 This application is just a playground for me to explore identity protocols. This application is not hardened or tested to be used in a production environment.
 
+## Get Ready to Run App
+1. Create a python virtual environment `virtualenv --python=python3 oppyvenv`
+2. `source oppyvenv/bin/activate`
+3. `pip install -r requirements.txt
+
 ## Run app instructions
 
 ```bash
