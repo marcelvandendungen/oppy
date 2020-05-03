@@ -37,7 +37,8 @@ def test_scim_create_user_failed(test_client, scim_client, scim_token):
         'Authorization': 'Bearer ' + scim_token
     }
     data = {
-        'username': 'jcruyff'
+        'username': 'jcruyff',
+        'password': 'number14'
     }
     response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
     assert response.status_code == 400
@@ -60,7 +61,8 @@ def test_scim_create_user(test_client, scim_client, scim_token):
     }
     data = {
         'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
-        'username': 'jcruyff'
+        'username': 'jcruyff',
+        'password': 'number14'
     }
     response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
     assert response.status_code == 201
@@ -127,3 +129,22 @@ def test_scim_get_group(test_client, scim_group, scim_token):
     assert response.json['displayName'] == 'test_grp'
     assert response.json['meta']['resourceType'] == 'Group'
     assert response.json['meta']['location'] == 'https://localhost:5000/scim/v2/Groups/' + response.json['id']
+
+
+def test_scim_list_users(test_client, scim_token):
+    """
+        GIVEN:  GET request to the /scim/v2/Users endpoint
+        WHEN:   Authorization header is valid
+        THEN:   server responds with 200 OK and a list of users
+    """
+    headers = {
+        'Authorization': 'Bearer ' + scim_token
+    }
+    response = test_client.get(USER_PATH, headers=headers, content_type='application/json')
+    assert response.status_code == 200
+    assert 'urn:ietf:params:scim:api:messages:2.0:ListResponse' in response.json['schemas']
+    user_count = len(response.json['Resources'])
+    assert response.json['startIndex'] == 1
+    assert response.json['itemsPerPage'] == user_count
+    assert response.json['totalResults'] == user_count
+    assert 'password' not in response.json['Resources'][0]

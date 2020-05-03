@@ -99,7 +99,8 @@ def scim_user(test_client, scim_client, scim_token):
     }
     data = {
         'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
-        'username': 'mcescher'
+        'username': 'mcescher',
+        'password': 'metamorphose'
     }
     response = test_client.post(USER_PATH, data=json.dumps(data), headers=header, content_type='application/json')
     assert response.status_code == 201

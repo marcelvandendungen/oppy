@@ -25,20 +25,35 @@ def create_blueprint(config):
             if not user:
                 return 404, 'Not found'
             scim_user = ScimUser.create_from(user, config['endpoints']['issuer'])
-            return make_scim_response(200, dict(scim_user.items()), user.get_etag())
+            return make_scim_response(200, dict(scim_user.items()), get_etag(scim_user))
         except ScimError as ex:
             scim_abort(ex)
 
     @scim_bp.route(USER_PATH, methods=["POST"])
     @authorize(audience=AUDIENCE, scopes='create_user')
-    def user():
+    def create_user():
         try:
-            return create_user(request.form)
+            user = ScimUser.create_from(request.json, config['endpoints']['issuer'])
+            user_store.add(user)
+            return make_scim_response(201, dict(user.items()), get_etag(user))
 
         except ScimError as ex:
             scim_abort(ex)
         except Exception as ex:
-            logger.exception("Exception occurred: " + str(ex))
+            logger.exception("Exception occurred")
+            return "Error occurred: " + ex.error_description, 400
+
+    @scim_bp.route(USER_PATH, methods=["GET"])
+    @authorize(audience=AUDIENCE, scopes='get_user')
+    def list_users():
+        try:
+            users = user_store.list()
+            return make_scim_list_response(users, 1, len(users))
+
+        except ScimError as ex:
+            scim_abort(ex)
+        except Exception as ex:
+            logger.exception("Exception occurred")
             return "Error occurred: " + ex.error_description, 400
 
     @scim_bp.route(GROUP_PATH + '/<string:group_id>', methods=['GET'])
@@ -55,25 +70,17 @@ def create_blueprint(config):
 
     @scim_bp.route(GROUP_PATH, methods=["POST"])
     @authorize(audience=AUDIENCE, scopes='create_group')
-    def group():
+    def create_group():
         try:
-            return create_group(request.form)
+            group = ScimGroup.create_from(request.json, config['endpoints']['issuer'])
+            group_store.add(group)
+            return make_scim_response(201, dict(group.items()), group.get_etag())
 
         except ScimError as ex:
             scim_abort(ex)
         except Exception as ex:
-            logger.exception("Exception occurred: " + str(ex))
+            logger.exception("Exception occurred")
             return "Error occurred: " + ex.error_description, 400
-
-    def create_user(parameters):
-        user = ScimUser.create_from(request.json, config['endpoints']['issuer'])
-        user_store.add(user)
-        return make_scim_response(201, dict(user.items()), user.get_etag())
-
-    def create_group(parameters):
-        group = ScimGroup.create_from(request.json, config['endpoints']['issuer'])
-        group_store.add(group)
-        return make_scim_response(201, dict(group.items()), group.get_etag())
 
     def make_scim_response(code, data, etag=None):
         resp = make_response(jsonify(data))
@@ -81,6 +88,16 @@ def create_blueprint(config):
         if etag:
             resp.headers['ETag'] = etag
         return resp, code
+
+    def make_scim_list_response(data, start_index, count):
+        response = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'totalResults': len(data),
+            'Resources': data,
+            'startIndex': start_index,
+            'itemsPerPage': count
+        }
+        return make_scim_response(200, response)
 
     def scim_abort(ex):
         abort(make_response(jsonify(create_error_payload(ex.status, ex.detail, ex.scim_type)), ex.status))
@@ -95,5 +112,8 @@ def create_blueprint(config):
             data['scimType'] = scim_type
 
         return data
+
+    def get_etag(user_dict):
+        return ScimUser.get_version(user_dict['meta']['created'], user_dict['meta']['modified'])
 
     return scim_bp
