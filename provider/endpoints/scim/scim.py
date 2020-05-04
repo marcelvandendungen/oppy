@@ -1,5 +1,5 @@
-from provider.model.scim_user import ScimUser, ScimError
-from provider.model.scim_group import ScimGroup
+from provider.model.scim.scim_user import ScimUser, ScimError
+from provider.model.scim.scim_group import ScimGroup
 from provider.model.user_store import user_store
 from provider.model.group_store import group_store
 from provider.model.authorize import authorize

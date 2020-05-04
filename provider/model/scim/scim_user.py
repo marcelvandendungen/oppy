@@ -1,5 +1,5 @@
 from provider.model.crypto import generate_code
-from provider.model.scim_entity import ScimEntity, ScimError
+from provider.model.scim.scim_entity import ScimEntity, ScimError
 
 
 class ScimUser(ScimEntity):
