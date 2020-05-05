@@ -1,8 +1,8 @@
 import time
 from urllib.parse import urlencode
 from provider.model import crypto
-from provider.model.authorization_request_store import authorization_requests
-from provider.model.user_store import user_store
+from provider.model.store.authorization_request_store import authorization_requests
+from provider.model.store.user_store import user_store
 
 
 class BadAuthorizeRequestError(Exception):

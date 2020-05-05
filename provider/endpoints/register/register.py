@@ -1,4 +1,4 @@
-from provider.model.registration_request import RegistrationRequest, RegistrationError
+from provider.model.oauth2.registration_request import RegistrationRequest, RegistrationError
 from util import init_logging
 
 from flask import Blueprint, request, jsonify, make_response

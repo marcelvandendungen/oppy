@@ -1,6 +1,6 @@
 import time
 
-from provider.model.client_store import client_store
+from provider.model.store.client_store import client_store
 from provider.model import crypto
 
 

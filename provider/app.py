@@ -10,7 +10,7 @@ from provider.endpoints.jwk.jwk import create_blueprint as create_jwk_blueprint
 from provider.endpoints.metadata.metadata import create_blueprint as create_metadata_blueprint
 from provider.endpoints.consent.consent import create_blueprint as create_consent_blueprint
 from provider.endpoints.scim.scim import create_blueprint as create_scim_blueprint
-from provider.model.client_store import client_store
+from provider.model.store.client_store import client_store
 from util import init_config, init_logging
 from provider.model.authorize import AuthorizeError
 

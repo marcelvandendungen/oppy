@@ -1,8 +1,8 @@
-from provider.model.consent_store import consent_store
+from provider.model.store.consent_store import consent_store
 from urllib.parse import urlencode
 
 from flask import Blueprint, request, make_response, render_template, redirect
-from provider.model.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
+from provider.model.oauth2.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
 from util import init_logging
 import jwt
 import time

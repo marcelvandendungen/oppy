@@ -1,6 +1,6 @@
 from flask import Blueprint, request, make_response
-from provider.model.token_request import TokenRequest, TokenRequestError
-from provider.model.grants import GrantError
+from provider.model.oauth2.token_request import TokenRequest, TokenRequestError
+from provider.model.oauth2.grants import GrantError
 from util import init_logging
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from provider.model.authorize_request import AuthorizeRequest, AuthorizeRequestError, BadAuthorizeRequestError
+from provider.model.oauth2.authorize_request import AuthorizeRequest, AuthorizeRequestError, BadAuthorizeRequestError
 
 
 def test_validate_scopes_with_valid_scopes():

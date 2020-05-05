@@ -2,9 +2,9 @@ import jwt
 import time
 from util import require
 
-from provider.model.grants import AuthorizationCodeGrant, ClientCredentialsGrant, RefreshTokenGrant
-from provider.model.authorization_request_store import authorization_requests
-from provider.model.refresh_token_store import refresh_token_store
+from provider.model.oauth2.grants import AuthorizationCodeGrant, ClientCredentialsGrant, RefreshTokenGrant
+from provider.model.store.authorization_request_store import authorization_requests
+from provider.model.store.refresh_token_store import refresh_token_store
 from provider.model import crypto
 
 
