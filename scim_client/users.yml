@@ -1,0 +1,187 @@
+users:
+  - username: erasmus
+    givenName: Desiderius
+    familyName: Erasmus
+    email: erasmus@rotterdam.nl
+    password: Humanism
+    active: true
+    roles: [philosopher]
+    groups: [scientist]
+    externalId: extId0001
+  - username: jhoort
+    givenName: Jan
+    middleName: Hendrik
+    familyName: Oort
+    email: oort@oortcloud.nl
+    password: DarkMatter
+    active: true
+    roles: [astronomer]
+    groups: [scientist]
+    externalId: extId0002
+  - username: gkuiper
+    givenName: Gerard
+    familyName: Kuiper
+    password: KuiperBelt
+    email: kuiper@uchicago.edu
+    roles: [astronomer]
+    groups: [scientist]
+    externalId: extId0003
+  - username: vleeuwenhoek
+    givenName: Antoni
+    familyName: van Leeuwenhoek
+    password: Animalcule
+    email: vleeuwenhoek@holland.com
+    roles: [microbiologists]
+    groups: [scientist]
+    externalId: extId0004
+  - username: jvermeer
+    givenName: Johannes
+    familyName: Vermeer
+    password: Melkmeisje
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0005
+  - username: rvrijn
+    givenName: Rembrandt
+    familyName: van Rijn
+    password: Nachtwacht
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0006
+  - username: chuygens
+    givenName: Christiaan
+    familyName: Huygens
+    password: Titan
+    active: true
+    roles: [astronomer]
+    groups: [scientist]
+    externalId: extId0007
+  - username: pmondriaan
+    givenName: Pieter
+    familyName: Mondriaan
+    password: RedBlueYellow
+    active: false
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0008
+  - username: vgogh
+    givenName: Vincent
+    familyName: van Gogh
+    password: StarryNight
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0009
+  - username: spinoza
+    givenName: Baruch
+    familyName: de Spinoza
+    password: Ethica
+    roles: [philosopher]
+    groups: [scientist]
+    externalId: extId0010
+  - username: hlorentz
+    givenName: Hendrik
+    familyName: Lorentz
+    password: ZeemanEffect
+    roles: [physicist]
+    groups: [scientist]
+    externalId: extId0011
+  - username: hbosch
+    givenName: Hieronymus
+    familyName: Bosch
+    password: EarthlyDelights
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0012
+  - username: kappel
+    givenName:  Karel
+    familyName: Appel
+    password: Zonnehoofd
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0013
+  - username: pbrueghel
+    givenName: Pieter
+    familyName: Brueghel
+    password: BoerenBruiloft
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0014
+  - username: mcescher
+    givenName: Maurits
+    middleName: Cornelis
+    familyName: Escher
+    formatted: M.C. Escher
+    password: metamorphose
+    roles: [graphic artist]
+    groups: [artist]
+    externalId: extId0015
+  - username: fhals
+    givenName: Frans
+    familyName: Hals
+    password: Zigeunermeisje
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0016
+  - username: grietveld
+    givenName: Gerrit
+    familyName: Rietveld
+    password: RedAndBlueChair
+    roles: [designer, architect]
+    groups: [artist]
+    externalId: extId0017
+  - username: jsteen
+    givenName: Jan
+    familyName: Steen
+    password: HuishoudenVan
+    roles: [painter]
+    groups: [artist]
+    externalId: extId0018
+  - username: acorbijn
+    givenName: Anton
+    familyName: Corbijn
+    password: BlackAndWhite
+    roles: [photographer, director]
+    groups: [artist]
+    externalId: extId0019
+  - username: jcruyff
+    givenName: Johan
+    familyName: Cruijff
+    password: number14
+    roles: [footballer]
+    groups: [athlete]
+    externalId: extId0020
+  - username: jzoetemelk
+    givenName: Joop
+    familyName: Zoetemelk
+    password: TourDeFrance
+    roles: [racing cyclist]
+    groups: [athlete]
+    externalId: extId0021
+  - username: jeden
+    givenName: Jaap
+    familyName: Eden
+    password: WorldChampion
+    roles: [racing cyclist, speed skater]
+    groups: [athlete]
+    externalId: extId0022
+  - username: vklaveren
+    givenName: Bep
+    familyName: van Klaveren
+    password: Olympics1928
+    roles: [boxer]
+    groups: [athlete]
+    externalId: extId0023
+  - username: iwust
+    givenName: Ireen
+    familyName: Wüst
+    password: Allround
+    roles: [speed skater]
+    groups: [athlete]
+    externalId: extId0024
+  - username: skramer
+    givenName: Sven
+    familyName: Kramer
+    password: LongTrack
+    roles: [speed skater]
+    groups: [athlete]
+    externalId: extId0025
