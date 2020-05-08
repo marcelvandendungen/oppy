@@ -18,6 +18,13 @@ logger = init_logging(__name__)
 scopes = {}
 
 
+JKWS_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['jwks']
+TOKEN_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['token']
+AUTHORIZE_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['authorize']
+REGISTRATION_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['registration']
+RESOURCE_ENDPOINT = config['endpoints']['resource_server'] + config['endpoints']['resource']
+
+
 class TokenStore:
     def __init__(self):
         self.tokens = {}
@@ -39,9 +46,9 @@ def get_public_key(url):
     return key.export_to_pem()
 
 
-def register_client():
+def register_client(config):
 
-    url = "https://127.0.0.1:5000/register"
+    url = REGISTRATION_ENDPOINT
     headers = {
         'Content-Type': 'application/json'
     }
@@ -56,7 +63,7 @@ def register_client():
     return response.json()
 
 
-public_key = get_public_key(config['endpoints']['issuer'] + '/jwk')
+public_key = get_public_key(JKWS_ENDPOINT)
 # read client id and secret from environment
 client_id = os.environ.get('CLIENT_ID')
 if client_id:
@@ -64,7 +71,7 @@ if client_id:
     redirect_uri = os.environ['REDIRECT_URI']
 else:
     # if not set, register client and use it's id and secret
-    client = register_client()
+    client = register_client(config)
     client_id = client['client_id']
     client_secret = client['client_secret']
     redirect_uri = client['redirect_uris'][0]
@@ -92,8 +99,7 @@ def index():
     try:
         if access_token:
             logger.info('access token found: ' + access_token)
-            response = requests.get('https://localhost:5002/resource',
-                                    headers={'Authorization': 'Bearer ' + access_token},
+            response = requests.get(RESOURCE_ENDPOINT, headers={'Authorization': 'Bearer ' + access_token},
                                     verify=False)
             if response.status_code == 200:
                 return render_template('index.html', token=response.json(), name=id_claims['name'])
@@ -115,8 +121,9 @@ def authorize_request(client, scope):
     logger.info('Requesting token(s) with scope: ' + scope)
     state = str(uuid.uuid4())
     scopes[state] = scope
-    return redirect(request_url('https://localhost:5000/authorize', client_id=client_id, redirect_uri=redirect_uri,
-                                response_type='code', state=state, scope=scope, response_mode='form_post'))
+    return redirect(request_url(AUTHORIZE_ENDPOINT, client_id=client_id,
+                                redirect_uri=redirect_uri, response_type='code', state=state, scope=scope,
+                                response_mode='form_post'))
 
 
 def request_url(url, **query_params):
@@ -148,7 +155,6 @@ def get_tokens(auth_code, state):
 
     scope = scopes[state]
 
-    token_endpoint = 'https://localhost:5000/token'
     redirect_url = 'https://localhost:5001/cb'
     headers = {}
     headers['Content-Type'] = "application/x-www-form-urlencoded"
@@ -159,7 +165,7 @@ def get_tokens(auth_code, state):
             "redirect_uri": quote(redirect_url),
             "client_id": client_id}
 
-    response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
+    response = requests.post(TOKEN_ENDPOINT, headers=headers, data=data, verify=False)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
         logger.info('access_token: ' + access_token)
@@ -183,7 +189,6 @@ def refresh_access_token(audience, scope):
     if not refresh_token:
         raise TokenRequestError()
 
-    token_endpoint = 'https://localhost:5000/token'
     headers = {
         'Content-Type': "application/x-www-form-urlencoded",
         'Authorization': authorization_header()
@@ -194,7 +199,7 @@ def refresh_access_token(audience, scope):
         "refresh_token": scope
     }
 
-    response = requests.post(token_endpoint, headers=headers, data=data, verify=False)
+    response = requests.post(TOKEN_ENDPOINT, headers=headers, data=data, verify=False)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
         tokencache.add(scope, access_token, 'access_token')
