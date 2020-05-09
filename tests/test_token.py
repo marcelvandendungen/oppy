@@ -262,7 +262,6 @@ def test_token_endpoint_issues_token_using_client_credentials(test_client, confi
         assert token['iat'] == 1584187200
         assert token['nbf'] == 1584187200
         assert token['exp'] == 1584190800
-        assert response.json['refresh_token']
 
 
 def test_token_endpoint_using_client_credentials_post(test_client, confidential_client_post):
@@ -292,7 +291,6 @@ def test_token_endpoint_using_client_credentials_post(test_client, confidential_
         assert token['iat'] == 1584187200
         assert token['nbf'] == 1584187200
         assert token['exp'] == 1584190800
-        assert response.json['refresh_token']
 
 
 def test_token_endpoint_issues_token_with_requested_scopes(test_client, confidential_client):

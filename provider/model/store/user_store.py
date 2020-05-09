@@ -25,7 +25,7 @@ class UserStore:
         return self.names.get(username, None)
 
     def update_scopes(self, username, scopes):
-        self.users[username]['consented_scopes'] += ' ' + scopes
+        self.names[username]['consented_scopes'] += ' ' + scopes
 
     def list(self):
         """
@@ -51,13 +51,13 @@ class UserStore:
 user_store = UserStore()
 
 user_store.add({
-    'id': 'hh1FRC4TNg',
+    'id': 'mvandend',
     'username': 'mvandend',
     'password': 'p@ssW0rd!',
     'consented_scopes': '',
     'name': 'Marcel'})
 user_store.add({
-    'id': 'rii8EHQPrx',
+    'id': 'testuser',
     'username': 'testuser',
     'password': 'p@ssW0rd!',
     'consented_scopes': 'openid read write',

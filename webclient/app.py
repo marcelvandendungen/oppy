@@ -1,5 +1,5 @@
 import base64
-from provider.model.token_request import TokenRequestError
+from provider.model.oauth2.token_request import TokenRequestError
 import jwt
 import requests
 import os

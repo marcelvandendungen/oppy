@@ -38,7 +38,7 @@ def process_consent_request(client_store):
         # check if consent granted
         if request.form.get('approve'):
             # store consent in user store
-            user_store.update_scopes(authorize_request.id, request.form.get('scopes'))
+            user_store.update_scopes(authorize_request.username, request.form.get('scopes'))
             if authorize_request.form_post_response:
                 return make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
                                                      state=authorize_request.state, code=authorize_request.code))

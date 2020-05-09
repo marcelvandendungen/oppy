@@ -43,7 +43,7 @@ class TokenRequest:
             'token_type': 'Bearer',
             'expires_in': ONE_HOUR
         }
-        if not client.is_public():
+        if not client.is_public() and not self.grant_type == 'client_credentials':
             payload['refresh_token'] = self.create_refresh_token(client['client_id'], principal)
 
         if 'code' in principal:
@@ -95,7 +95,8 @@ class TokenRequest:
         payload = {
             'client_id': client_id,
             'expires': now + ONE_WEEK,
-            'id': auth_request['id'],
+            'username': auth_request['username'],
+            'id': auth_request['username'],
             'scope': auth_request['scope']
         }
 

@@ -68,12 +68,14 @@ def create_blueprint(client_store, public_key, private_key):
     def create_session_token(principal):
         now = int(time.time())
         claims = {
-            'id': principal.username,
+            'id': principal.id,
+            'username': principal.username,
             'consented_scopes': principal.consented_scopes,
             'aud': 'https://localhost:5000',
             'iat': now,
             'nbf': now,
             'exp': now + 3600,
+            'name': principal.name
         }
 
         token = jwt.encode(claims, private_key, algorithm='RS256')
