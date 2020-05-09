@@ -165,6 +165,27 @@ def test_post_to_authorize_issues_code(test_client, confidential_client):
     assert query_params['state'] == '96f07e0b-992a-4b5e-a61a-228bd9cfad35'
 
 
+def test_post_to_authorize_with_invalid_credentials_displays_error(test_client, confidential_client):
+    """
+        GIVEN:  POST request to the /authorize endpoint
+        WHEN:   all required form variables are present, but credentials are incorrect
+        THEN:   response is 200 Ok with login page including div with error notification
+    """
+
+    client = confidential_client
+    form_vars = {
+        'client_id': client['client_id'],
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'testuser',
+        'password': 'password'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.data, features="html.parser")
+    assert 'Those credentials did not work' in soup.find('div', class_='warning').string
+
+
 def test_post_to_authorize_with_whitelisted_redirect_uri_redirects_correctly(test_client, confidential_client):
     """
         GIVEN:  POST request to the /authorize endpoint

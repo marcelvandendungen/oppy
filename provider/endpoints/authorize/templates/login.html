@@ -8,6 +8,9 @@
 
     <div id="layout">
         <div class="content">
+            {% if error %}
+            <div class="warning">Those credentials did not work. Please try again.</div>
+            {% endif %}
 
             <form method="POST" action="/authorize">
 

@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from flask import Blueprint, request, make_response, render_template, redirect
 from provider.model.oauth2.authorize_request import AuthorizeRequest, BadAuthorizeRequestError, AuthorizeRequestError
+from provider.model.oauth2.authorize_request import AuthenticationError
 from util import init_logging
 import jwt
 import time
@@ -20,7 +21,6 @@ def create_blueprint(client_store, public_key, private_key):
                 return process_authorization_request(client_store)
             else:
                 return process_authentication_request(client_store)
-
         except BadAuthorizeRequestError as ex:
             logger.exception("Exception occurred")
             return "Error occurred: " + ex.error_description, 400
@@ -37,7 +37,8 @@ def create_blueprint(client_store, public_key, private_key):
         authorize_request = AuthorizeRequest.from_dictionary(request.args).validate(client_store)
         session = authenticated_session(request.cookies.get('session'))
         if session:
-            authorize_request = AuthorizeRequest.from_dictionary(request.args).process(client_store, session=session)
+            authorize_request = AuthorizeRequest.from_dictionary(request.args).process(client_store,
+                                                                                        session=session)
             if not authorize_request.consent_given(authorize_request.scope):
                 return show_consent_page(authorize_request, request.cookies.get('session'))
             return redirect(authorize_request.redirection_url())
@@ -50,20 +51,26 @@ def create_blueprint(client_store, public_key, private_key):
         issues authorization code if all is correct and user has already given consent, displays
         consent page otherwise.
         """
-        authorize_request = AuthorizeRequest.from_dictionary(request.form).process(client_store)
-        session = create_session_token(authorize_request)
-        logger.info("Added auth request for: " + authorize_request.code)
-        if authorize_request.consent_given(authorize_request.scope):
-            if authorize_request.form_post_response:
-                resp = make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
-                                                     state=authorize_request.state, code=authorize_request.code))
+        authorize_request = AuthorizeRequest.from_dictionary(request.form)
+        
+        try:
+            authorize_request.process(client_store)
+            session = create_session_token(authorize_request)
+            logger.info("Added auth request for: " + authorize_request.code)
+            if authorize_request.consent_given(authorize_request.scope):
+                if authorize_request.form_post_response:
+                    resp = make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
+                                                         state=authorize_request.state, code=authorize_request.code))
+                else:
+                    resp = redirect(authorize_request.redirection_url())
+                resp.set_cookie('session', session)
             else:
-                resp = redirect(authorize_request.redirection_url())
-            resp.set_cookie('session', session)
-        else:
-            return show_consent_page(authorize_request, session)
+                return show_consent_page(authorize_request, session)
 
-        return resp
+            return resp
+        except AuthenticationError:
+            logger.exception("Exception occurred")
+            return make_response(render_template('login.html', req=authorize_request.__dict__, error=True))
 
     def create_session_token(principal):
         now = int(time.time())

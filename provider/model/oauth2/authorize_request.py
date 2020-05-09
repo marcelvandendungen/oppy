@@ -5,6 +5,13 @@ from provider.model.store.authorization_request_store import authorization_reque
 from provider.model.store.user_store import user_store
 
 
+class AuthenticationError(Exception):
+    def __init__(self, error, error_description, error_uri=""):
+        self.error = error
+        self.error_description = error_description
+        self.error_uri = error_uri
+
+
 class BadAuthorizeRequestError(Exception):
     def __init__(self, error, error_description, error_uri=""):
         self.error = error
@@ -165,7 +172,7 @@ class AuthorizeRequest:
     def verify_user_credentials(self, username, password):
         user_info = user_store.get_by_name(username)
         if not user_info or user_info['password'] != password:
-            raise BadAuthorizeRequestError('invalid_request', 'username or password incorrect')
+            raise AuthenticationError('invalid_request', 'username or password incorrect')
         return user_info
 
     def issue_code(self):
