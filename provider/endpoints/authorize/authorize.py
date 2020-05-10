@@ -38,7 +38,7 @@ def create_blueprint(client_store, public_key, private_key):
         session = authenticated_session(request.cookies.get('session'))
         if session:
             authorize_request = AuthorizeRequest.from_dictionary(request.args).process(client_store,
-                                                                                        session=session)
+                                                                                       session=session)
             if not authorize_request.consent_given(authorize_request.scope):
                 return show_consent_page(authorize_request, request.cookies.get('session'))
             return redirect(authorize_request.redirection_url())
@@ -52,7 +52,7 @@ def create_blueprint(client_store, public_key, private_key):
         consent page otherwise.
         """
         authorize_request = AuthorizeRequest.from_dictionary(request.form)
-        
+
         try:
             authorize_request.process(client_store)
             session = create_session_token(authorize_request)

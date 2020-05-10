@@ -5,25 +5,23 @@ from provider.model.store.authorization_request_store import authorization_reque
 from provider.model.store.user_store import user_store
 
 
-class AuthenticationError(Exception):
+class AuthorizeError(Exception):
     def __init__(self, error, error_description, error_uri=""):
         self.error = error
         self.error_description = error_description
         self.error_uri = error_uri
 
 
-class BadAuthorizeRequestError(Exception):
-    def __init__(self, error, error_description, error_uri=""):
-        self.error = error
-        self.error_description = error_description
-        self.error_uri = error_uri
+class AuthenticationError(AuthorizeError):
+    pass
 
 
-class AuthorizeRequestError(Exception):
-    def __init__(self, error, error_description, error_uri=""):
-        self.error = error
-        self.error_description = error_description
-        self.error_uri = error_uri
+class BadAuthorizeRequestError(AuthorizeError):
+    pass
+
+
+class AuthorizeRequestError(AuthorizeError):
+    pass
 
 
 class AuthorizeRequest:

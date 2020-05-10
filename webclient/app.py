@@ -23,6 +23,7 @@ TOKEN_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['token']
 AUTHORIZE_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['authorize']
 REGISTRATION_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['registration']
 RESOURCE_ENDPOINT = config['endpoints']['resource_server'] + config['endpoints']['resource']
+USERINFO_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['userinfo']
 
 
 class TokenStore:
@@ -83,11 +84,18 @@ logger.info('client_id: ' + client_id)
 @app.route("/")
 def index():
 
+    userinfo_claims = {}
     id_token = tokencache.get('openid', 'id_token')
     try:
         if id_token:
             logger.info('id_token found: ' + str(id_token))
             id_claims = get_token_claims(id_token, client_id)
+
+            access_token = tokencache.get('openid', 'access_token')
+            response = requests.get(USERINFO_ENDPOINT, headers={'Authorization': 'Bearer ' + access_token},
+                                    verify=False)
+            if response.status_code == 200:
+                userinfo_claims = response.json()
         else:
             logger.info('id token not found')
             return authorize_request(client, scope='openid')
@@ -102,7 +110,8 @@ def index():
             response = requests.get(RESOURCE_ENDPOINT, headers={'Authorization': 'Bearer ' + access_token},
                                     verify=False)
             if response.status_code == 200:
-                return render_template('index.html', token=response.json(), name=id_claims['name'])
+                return render_template('index.html', token=response.json(), userinfo=userinfo_claims, 
+                                       name=id_claims['name'])
             elif response.status_code == 401:
                 logger.info("Access token is expired, refreshing...")
                 access_token = refresh_access_token('urn:my_service', 'read write')
