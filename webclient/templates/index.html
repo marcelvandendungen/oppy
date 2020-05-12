@@ -8,11 +8,14 @@
 
     <div id="layout">
         <div class="content">
-            <h1>Name: {{name}}</h1>
+            <h1>Name (from id_token): {{name}}</h1>
 
-            <div>{{userinfo['name']}}</div>
+            <h2>Claims from userinfo endpoint:</h2>
+            <div>Name: {{userinfo['name']}}</div>
+            <div>Email: {{userinfo['email']}}</div>
+            <div>Roles: {{userinfo['roles']}}</div>
 
-            <h1>Claims info</h1>            
+            <h2>Claims info (from access token)</h2>
             <table>
                 <thead>
                     <th>key</th>

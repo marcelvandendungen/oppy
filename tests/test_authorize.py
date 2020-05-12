@@ -355,9 +355,10 @@ def test_post_to_authorize_with_non_consented_user_returns_consent_page(test_cli
     assert soup.find('input', dict(name='state'))['value'] == form_vars['state']
     assert soup.find('input', dict(name='id'))['value']
 
-    checkboxes = soup.findAll('input', dict(name='scopes'))
-    assert 'read' in checkboxes[0].nextSibling
-    assert 'write' in checkboxes[1].nextSibling
+    checkbox = soup.find('input', dict(name='scopes0'))
+    assert 'read' in checkbox.nextSibling
+    checkbox = soup.find('input', dict(name='scopes1'))
+    assert 'write' in checkbox.nextSibling
 
 
 def test_post_to_authorize_issues_code_using_form_post(test_client, confidential_client):

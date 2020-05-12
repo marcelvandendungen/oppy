@@ -1,3 +1,5 @@
+import base64
+from urllib.parse import urlparse, urlsplit, parse_qsl
 from provider.app import app
 from provider.endpoints.scim.scim import USER_PATH, GROUP_PATH
 
@@ -119,6 +121,42 @@ def scim_group(test_client, scim_client, scim_token):
     response = test_client.post(GROUP_PATH, data=json.dumps(data), headers=header, content_type='application/json')
     assert response.status_code == 201
     return response.json
+
+
+@pytest.fixture(scope='session')
+def usertoken(test_client, confidential_client):
+    client = confidential_client
+    form_vars = {
+        'client_id': client['client_id'],
+        'state': '96f07e0b-992a-4b5e-a61a-228bd9cfad35',
+        'username': 'testuser',
+        'password': 'p@ssW0rd!',
+        'scope': 'openid'
+    }
+
+    response = test_client.post('/authorize', data=form_vars)
+    assert response.status_code == 302
+    query_params = dict(parse_qsl(urlsplit(response.headers['Location']).query))
+    code = query_params['code']
+
+    client_id = confidential_client['client_id']
+    client_secret = confidential_client['client_secret']
+    plaintext = f'{client_id}:{client_secret}'
+
+    headers = {
+        'Authorization': 'Basic ' + str(base64.b64encode(plaintext.encode('utf-8')), 'utf-8')
+    }
+    post_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': client_id,
+        'scope': 'openid'
+    }
+
+    response = test_client.post('/token', headers=headers, data=post_data)
+    assert response.status_code == 200
+    token = response.json['access_token']
+    return token
 
 
 def register_client(test_client, payload):

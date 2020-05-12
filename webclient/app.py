@@ -1,5 +1,5 @@
 import base64
-from provider.model.oauth2.token_request import TokenRequestError
+import collections
 import jwt
 import requests
 import os
@@ -8,6 +8,7 @@ import uuid
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
 from util import init_logging, init_config
+from provider.model.oauth2.token_request import TokenRequestError
 
 from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
@@ -28,14 +29,27 @@ USERINFO_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['userinf
 
 class TokenStore:
     def __init__(self):
-        self.tokens = {}
+        "key = type, value = list of tuples, each with of list of scopes and token"
+        self.tokens = collections.defaultdict(list)
 
     def add(self, scope, token, type):
-        self.tokens[(scope, type)] = token
+        print(f'add {type} for {scope}')
+        self.tokens[type].append((scope.split(' '), token))
+        # self.tokens[(scope, type)] = token
 
     def get(self, scope, type):
-        token = self.tokens.get((scope, type))
-        return token
+        print(f'get {type} for {scope}')
+        items = self.tokens[type]
+        for item in items:
+            # iterate through list of tuples
+            # find one with right scope(s)
+            if set(scope.split(' ')).issubset(set(item[0])):
+                print('found')
+                return item[1]
+
+        print('not found')
+        # token = self.tokens.get((scope, type))
+        return None
 
 
 tokencache = TokenStore()
@@ -57,7 +71,7 @@ def register_client(config):
         "grant_types": ["authorization_code"],
         "redirect_uris": ["https://localhost:5001/cb", "https://localhost:5003/cb"],
         "name": "confidential_client",
-        "scope": "read write openid"
+        "scope": "read write openid profile email roles"
     }
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
@@ -98,7 +112,7 @@ def index():
                 userinfo_claims = response.json()
         else:
             logger.info('id token not found')
-            return authorize_request(client, scope='openid')
+            return authorize_request(client, scope='openid profile email roles')
     except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError) as ex:
         logger.warn('ID token expired: ', str(ex))
         return authorize_request(client, scope='openid')

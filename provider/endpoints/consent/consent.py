@@ -38,7 +38,7 @@ def process_consent_request(client_store):
         # check if consent granted
         if request.form.get('approve'):
             # store consent in user store
-            user_store.update_scopes(authorize_request.username, request.form.get('scopes'))
+            user_store.update_scopes(authorize_request.username, get_scopes(request.form))
             if authorize_request.form_post_response:
                 return make_response(render_template('form_post.html', redirect_uri=authorize_request.redirect_uri,
                                                      state=authorize_request.state, code=authorize_request.code))
@@ -51,3 +51,14 @@ def process_consent_request(client_store):
     except Exception as ex:
         logger.exception("Exception occurred")
         return "Error occurred: " + str(ex), 500
+
+
+def get_scopes(parameters):
+    scopes = []
+    index = 0
+    name = f'scopes{index}'
+    while (name in parameters):
+        index += 1
+        scopes.append(parameters[name])
+        name = f'scopes{index}'
+    return ' '.join(scopes)

@@ -21,6 +21,11 @@ def create_blueprint(config):
             'sub': subject,
             'name': user['name']
         }
+        if 'email' in user['consented_scopes'] and 'email' in user:
+            payload['email'] = user['email']
+        if 'roles' in user['consented_scopes'] and 'roles' in user:
+            payload['roles'] = user['roles']
+
         resp = make_response(jsonify(payload))
         resp.headers['Content-Type'] = 'application/json'
         resp.headers['Access-Control-Allow-Origin'] = '*'

@@ -54,6 +54,8 @@ user_store.add({
     'id': 'mvandend',
     'username': 'mvandend',
     'password': 'p@ssW0rd!',
+    'email': 'mvandend@github.com',
+    'roles': ['developer'],
     'consented_scopes': '',
     'name': 'Marcel'})
 user_store.add({
