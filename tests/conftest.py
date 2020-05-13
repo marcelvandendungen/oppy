@@ -1,5 +1,5 @@
 import base64
-from urllib.parse import urlparse, urlsplit, parse_qsl
+from urllib.parse import urlsplit, parse_qsl
 from provider.app import app
 from provider.endpoints.scim.scim import USER_PATH, GROUP_PATH
 
