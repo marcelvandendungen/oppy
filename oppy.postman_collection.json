@@ -1,0 +1,387 @@
+{
+	"info": {
+		"_postman_id": "0205590d-28f3-4a1b-b618-91037af643b4",
+		"name": "oppy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Register client",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8a4e8ada-9ca5-4c53-ab5d-438918be1635",
+						"exec": [
+							"pm.environment.set(\"client_id\", pm.response.json().client_id)  // save client_id to environment for use in other requests",
+							"pm.environment.set(\"client_secret\", pm.response.json().client_secret)  // save client_secret to environment for use in other requests"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"grant_types\": [\n        \"client_credentials\"\n    ],\n\t\"redirect_uris\": [\n            \"https://localhost:5001/cb\",\n            \"https://localhost:5003/cb\"\n        ],\n    \"token_endpoint_auth_method\": \"client_secret_basic\",\n    \"name\": \"confidential_client\",\n    \"scope\": \"read write\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{auth_svr}}/register",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Authorize request",
+			"protocolProfileBehavior": {
+				"disableCookies": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{auth_svr}}/authorize?client_id={{client_id}}&username=test&password=test&state=something&response_type=code&scope=read",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"authorize"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}"
+						},
+						{
+							"key": "username",
+							"value": "test"
+						},
+						{
+							"key": "password",
+							"value": "test"
+						},
+						{
+							"key": "state",
+							"value": "something"
+						},
+						{
+							"key": "response_type",
+							"value": "code"
+						},
+						{
+							"key": "scope",
+							"value": "read"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Authenticate user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b1c3a4a0-558b-482f-9fe3-86fd526ea76b",
+						"exec": [
+							"const $ = cheerio.load(pm.response.text())",
+							"//console.log(pm.response.text())",
+							"/*",
+							"pm.test(\"it should return a title\", () => { ",
+							"    pm.expect($('title').text()).to.not.be.empty ",
+							"})",
+							"*/",
+							"console.log($('input[name=\"id\"]').attr('value'))",
+							"pm.environment.set('consent_id', $('input[name=\"id\"]').attr('value'))  // save consent id to environment for use in other requests"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"followRedirects": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "mvandend",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "p@ssW0rd!",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "something",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "read",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{auth_svr}}/authorize",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"authorize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Consent of user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7cb06506-aaf4-4ef3-8510-937130f8b433",
+						"exec": [
+							"var loc = pm.response.headers.get('Location')",
+							"var query = loc.split(/[?&]+/)",
+							"console.log(typeof(query));",
+							"query.forEach(e => {",
+							"    if (e.startsWith('code=')) {",
+							"        var code = e.substring(5);",
+							"        // console.log(code);",
+							"        pm.environment.set(\"code\", code);",
+							"    }",
+							"})",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"followRedirects": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "id",
+							"value": "{{consent_id}}",
+							"type": "text"
+						},
+						{
+							"key": "scope0",
+							"value": "read",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{auth_svr}}/consent",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"consent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Token request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8ab8a745-6923-4a91-a19e-bf251484fc1e",
+						"exec": [
+							"pm.environment.set(\"access_token\", pm.response.json().access_token) "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "{{code}}",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{auth_svr}}/token",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"disabled": true
+						},
+						{
+							"key": "code",
+							"value": "VxwMHZ6FUJ8o",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Get public key",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{auth_svr}}/jwk",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						"jwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Get resource",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{resource_svc}}/resource",
+					"host": [
+						"{{resource_svc}}"
+					],
+					"path": [
+						"resource"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Get metadata",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{auth_svr}}/.well-known/openid-configuration",
+					"host": [
+						"{{auth_svr}}"
+					],
+					"path": [
+						".well-known",
+						"openid-configuration"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
