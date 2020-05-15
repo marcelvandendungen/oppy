@@ -106,13 +106,6 @@
 						"id": "b1c3a4a0-558b-482f-9fe3-86fd526ea76b",
 						"exec": [
 							"const $ = cheerio.load(pm.response.text())",
-							"//console.log(pm.response.text())",
-							"/*",
-							"pm.test(\"it should return a title\", () => { ",
-							"    pm.expect($('title').text()).to.not.be.empty ",
-							"})",
-							"*/",
-							"console.log($('input[name=\"id\"]').attr('value'))",
 							"pm.environment.set('consent_id', $('input[name=\"id\"]').attr('value'))  // save consent id to environment for use in other requests"
 						],
 						"type": "text/javascript"
