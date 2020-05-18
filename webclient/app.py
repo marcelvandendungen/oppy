@@ -14,7 +14,7 @@ from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
 
 
-config = init_config('config.yml')
+config = init_config('webclient/config.yml')
 logger = init_logging(__name__)
 scopes = {}
 

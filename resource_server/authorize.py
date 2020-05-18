@@ -13,7 +13,7 @@ def get_public_key(url):
     return key.export_to_pem()
 
 
-config = init_config('config.yml')
+config = init_config('resource_server/config.yml')
 
 public_key = get_public_key(config['endpoints']['issuer'] + config['endpoints']['jwks'])
 

@@ -37,7 +37,7 @@ def init_crypto():
     return private_key, public_key
 
 
-config = init_config('config.yml')
+config = init_config('provider/config.yml')
 logger = init_logging(__name__)
 
 keypair = init_crypto()

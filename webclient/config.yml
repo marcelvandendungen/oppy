@@ -1,0 +1,9 @@
+endpoints:
+    issuer: https://localhost:5000
+    authorize: /authorize
+    token: /token
+    userinfo: /userinfo
+    jwks: /jwk
+    registration: /register
+    resource_server: https://localhost:5002
+    resource: /resource

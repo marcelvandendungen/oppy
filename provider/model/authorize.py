@@ -1,7 +1,7 @@
 import jwt
 from functools import wraps
 from flask import request
-from util import init_config, init_logging
+from util import init_logging
 
 
 def get_public_key(filename):
@@ -10,7 +10,6 @@ def get_public_key(filename):
         return key
 
 
-config = init_config('config.yml')
 logger = init_logging(__name__)
 public_key = get_public_key("./public.pem")
 
