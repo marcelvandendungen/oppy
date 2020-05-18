@@ -5,7 +5,7 @@ from provider.model.oauth2.authorize_request import AuthorizeRequest
 from flask import Blueprint, request, redirect, make_response, render_template
 from provider.model.store.authorization_request_store import authorization_requests
 from provider.model.store.consent_store import consent_store
-from util import init_logging
+from provider.util import init_logging
 
 logger = init_logging(__name__)
 

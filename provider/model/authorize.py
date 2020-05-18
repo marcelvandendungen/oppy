@@ -1,7 +1,7 @@
 import jwt
 from functools import wraps
 from flask import request
-from util import init_config, init_logging
+from provider.util import init_config, init_logging
 
 
 def get_public_key(filename):
@@ -10,9 +10,9 @@ def get_public_key(filename):
         return key
 
 
-config = init_config('config.yml')
+config = init_config('provider/config.yml')
 logger = init_logging(__name__)
-public_key = get_public_key("./public.pem")
+public_key = get_public_key("./provider/public.pem")
 
 
 class AuthorizeError(Exception):

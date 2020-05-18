@@ -5,7 +5,7 @@ from provider.model.store.group_store import group_store
 from provider.model.authorize import authorize
 
 from flask import Blueprint, request, make_response, jsonify, abort
-from util import init_logging
+from provider.util import init_logging
 
 logger = init_logging(__name__)
 AUDIENCE = 'https://localhost:5000/'

@@ -1,6 +1,6 @@
 import jwt
 import time
-from util import require
+from provider.util import require
 
 from provider.model.oauth2.grants import AuthorizationCodeGrant, ClientCredentialsGrant, RefreshTokenGrant
 from provider.model.store.authorization_request_store import authorization_requests

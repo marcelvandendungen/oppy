@@ -12,7 +12,7 @@ from provider.endpoints.consent.consent import create_blueprint as create_consen
 from provider.endpoints.scim.scim import create_blueprint as create_scim_blueprint
 from provider.endpoints.userinfo.userinfo import create_blueprint as create_userinfo_blueprint
 from provider.model.store.client_store import client_store
-from util import init_config, init_logging
+from provider.util import init_config, init_logging
 from provider.model.authorize import AuthorizeError
 
 
@@ -26,18 +26,18 @@ def init_crypto():
     """
       Read private and public key from PEM file on disk
     """
-    if not os.path.exists("./private.pem"):
+    if not os.path.exists("./provider/private.pem"):
         raise IOError("private.pem not found or no permission to read")
-    private_key = read_pem("./private.pem")
-    if not os.path.exists("./public.pem"):
+    private_key = read_pem("./provider/private.pem")
+    if not os.path.exists("./provider/public.pem"):
         raise IOError("public.pem not found or no permission to read")
     else:
-        public_key = read_pem("./public.pem")
+        public_key = read_pem("./provider/public.pem")
 
     return private_key, public_key
 
 
-config = init_config('config.yml')
+config = init_config('provider/config.yml')
 logger = init_logging(__name__)
 
 keypair = init_crypto()
@@ -64,7 +64,7 @@ def error_handler(ex):
 
 def main():
     app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'],
-            ssl_context=('cert.pem', 'key.pem'))
+            ssl_context=('provider/cert.pem', 'provider/key.pem'))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, make_response
 from provider.model.oauth2.token_request import TokenRequest, TokenRequestError
 from provider.model.oauth2.grants import GrantError
-from util import init_logging
+from provider.util import init_logging
 
 
 logger = init_logging(__name__)
