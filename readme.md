@@ -29,7 +29,9 @@ $ python -m flask run
 # OR
 $ export PYTHONPATH="$HOME/dev/oppy"
 $ export TESTING=True
+# export KEY_LOCATION="public.pem"
 $ python -m provider
+# export KEY_LOCATION="https://localhost:5000/jwk"
 $ python -m resource_server
 $ python -m webclient
 ```

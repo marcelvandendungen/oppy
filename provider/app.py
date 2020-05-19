@@ -13,7 +13,7 @@ from provider.endpoints.scim.scim import create_blueprint as create_scim_bluepri
 from provider.endpoints.userinfo.userinfo import create_blueprint as create_userinfo_blueprint
 from provider.model.store.client_store import client_store
 from util import init_config, init_logging
-from provider.model.authorize import AuthorizeError
+from oidcpy.authorize import AuthorizeError
 
 
 def read_pem(filename):

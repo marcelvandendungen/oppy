@@ -8,3 +8,4 @@ requests==2.23.0
 PyYAML==5.3.1
 pycryptodome==3.9.7
 jwcrypto==0.7
+oidcpy==0.0.3
