@@ -12,8 +12,8 @@ from provider.endpoints.consent.consent import create_blueprint as create_consen
 from provider.endpoints.scim.scim import create_blueprint as create_scim_blueprint
 from provider.endpoints.userinfo.userinfo import create_blueprint as create_userinfo_blueprint
 from provider.model.store.client_store import client_store
-from provider.util import init_config, init_logging
-from provider.model.authorize import AuthorizeError
+from util import init_config, init_logging
+from oidcpy.authorize import AuthorizeError
 
 
 def read_pem(filename):

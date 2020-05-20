@@ -3,7 +3,7 @@ import jwt
 import os
 import sys
 
-from resource_server.authorize import authorize, AuthorizeError
+from oidcpy import authorize, AuthorizeError
 
 from flask import Flask, request, make_response, jsonify
 

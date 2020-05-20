@@ -20,6 +20,7 @@
         "jsonify",
         "jwcrypto",
         "jwks",
+        "oidcpy",
         "openssl",
         "oppy",
         "outform",

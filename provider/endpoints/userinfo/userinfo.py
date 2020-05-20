@@ -1,6 +1,6 @@
 from provider.util import init_logging
 from provider.model.store.user_store import user_store
-from provider.model.authorize import authorize
+from oidcpy.authorize import authorize
 
 from flask import Blueprint, request, jsonify, make_response
 
