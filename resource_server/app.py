@@ -1,5 +1,5 @@
-from webclient.app import logger
 import jwt
+import logging
 import os
 import sys
 
@@ -8,6 +8,15 @@ from oidcpy import authorize, AuthorizeError
 from flask import Flask, request, make_response, jsonify
 
 
+def init_logging(name):
+    ""
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    return logger
+
+
+logger = init_logging(__name__)
 app = Flask(__name__)
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
 
