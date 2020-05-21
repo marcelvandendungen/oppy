@@ -8,7 +8,6 @@ import uuid
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
 from util import init_logging, init_config
-from provider.model.oauth2.token_request import TokenRequestError
 
 from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
@@ -25,6 +24,10 @@ AUTHORIZE_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['author
 REGISTRATION_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['registration']
 RESOURCE_ENDPOINT = config['endpoints']['resource_server'] + config['endpoints']['resource']
 USERINFO_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['userinfo']
+
+
+class TokenError(Exception):
+    pass
 
 
 class TokenStore:
@@ -136,7 +139,7 @@ def index():
             logger.info('access cookie not found')
             return authorize_request(client, scope='read write')
 
-    except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, TokenRequestError):
+    except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, TokenError):
         return authorize_request(client, scope='read write')
 
 
@@ -202,7 +205,7 @@ def get_tokens(auth_code, state):
             logger.info('id_token: ' + id_token)
             tokencache.add(scope, id_token, 'id_token')
     else:
-        raise TokenRequestError()
+        raise TokenError()
 
 
 def refresh_access_token(audience, scope):
@@ -210,7 +213,7 @@ def refresh_access_token(audience, scope):
     refresh_token = tokencache.get(audience, 'refresh_token')
 
     if not refresh_token:
-        raise TokenRequestError()
+        raise TokenError()
 
     headers = {
         'Content-Type': "application/x-www-form-urlencoded",
@@ -231,7 +234,7 @@ def refresh_access_token(audience, scope):
             tokencache.add(scope, refresh_token, 'refresh_token')
         return access_token
 
-    raise TokenRequestError('Error refreshing token: ' + str(response))
+    raise TokenError('Error refreshing token: ' + str(response))
 
 
 def authorization_header():
