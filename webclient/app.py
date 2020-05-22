@@ -263,7 +263,7 @@ def get_token_claims(token, audience):
 
 def main():
     app.run(host='0.0.0.0', port=5001, debug=app.config['TESTING'],
-            ssl_context=('cert.pem', 'key.pem'))
+            ssl_context=('webclient/cert.pem', 'webclient/key.pem'))
 
 
 if __name__ == "__main__":

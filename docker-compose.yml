@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  provider:
+    build: ./provider
+    volumes:
+      - ./provider:/app/provider
+    ports:
+      - 5000:5000
+    stdin_open: true
+    tty: true
+
+  webclient:
+    build: ./webclient
+    volumes:
+      - ./webclient:/app/webclient
+    ports:
+      - 5001:5001
+    depends_on:
+      - provider
+
+    stdin_open: true
+    tty: true

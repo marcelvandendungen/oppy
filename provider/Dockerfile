@@ -17,4 +17,4 @@ ENV KEY_LOCATION="provider/public.pem"
 EXPOSE 5000
 
 ENTRYPOINT ["python3"]
-# CMD ["-u", "provider/app.py"]
+CMD ["-u", "provider/app.py"]

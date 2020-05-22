@@ -11,7 +11,7 @@ def create_blueprint():
 
     @jwk_bp.route('/jwk')
     def get_jwk():
-        with open("public.pem", "rb") as f:
+        with open("provider/public.pem", "rb") as f:
             key = jwk.JWK.from_pem(f.read())
             response = make_response(key.export(private_key=False), 200)
             response.headers['Content-Type'] = 'application/json'
