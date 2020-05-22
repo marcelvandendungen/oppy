@@ -11,7 +11,7 @@ This application is just a playground for me to explore identity protocols. This
 2. `source oppyvenv/bin/activate`
 3. `pip install -r requirements.txt
 
-## Run app instructions
+## Run app locally
 
 ```bash
 #!/bin/bash
@@ -41,4 +41,12 @@ $ python -m webclient
 ```bash
 #!/bin/bash
 $ pytest [-v]
+```
+
+## Run app in Docker
+```bash
+#!/bin/bash
+$ # add this line to hosts file at /etc/hosts
+  # 127.0.0.1       provider
+$ docker-compose up
 ```

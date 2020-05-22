@@ -47,7 +47,7 @@ def resource():
 
 def main():
     app.run(host='0.0.0.0', port=5002, debug=app.config['TESTING'],
-            ssl_context=('cert.pem', 'key.pem'))
+            ssl_context=('resource_server/cert.pem', 'resource_server/key.pem'))
 
 
 if __name__ == "__main__":

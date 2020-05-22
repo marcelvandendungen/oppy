@@ -5,5 +5,5 @@ endpoints:
     userinfo: /userinfo
     jwks: /jwk
     registration: /register
-    resource_server: https://localhost:5002
+    resource_server: https://resource_server:5002
     resource: /resource

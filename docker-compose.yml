@@ -21,3 +21,15 @@ services:
 
     stdin_open: true
     tty: true
+
+  resource_server:
+    build: ./resource_server
+    volumes:
+      - ./resource_server:/app/resource_server
+    ports:
+      - 5002:5002
+    depends_on:
+      - provider
+
+    stdin_open: true
+    tty: true
