@@ -1,0 +1,7 @@
+endpoints:
+    issuer: https://provider:5000
+    authorize: /authorize
+    token: /token
+    jwks: /jwk
+    registration: /register
+    scim: /scim/v2

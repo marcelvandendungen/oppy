@@ -2,12 +2,14 @@ import json
 import sys
 import requests
 import yaml
-from util import init_config
 
 
-config = init_config('config.yml')
+def init_config(path):
+    config = yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
+    return config
 
 
+config = init_config('scim_client/config.yml')
 issuer = config['endpoints']['issuer']
 config['endpoints']['registration']
 

@@ -33,3 +33,13 @@ services:
 
     stdin_open: true
     tty: true
+
+  scim_client:
+    build: ./scim_client
+    volumes:
+      - ./scim_client:/app/scim_client
+    depends_on:
+      - provider
+
+    stdin_open: true
+    tty: true
