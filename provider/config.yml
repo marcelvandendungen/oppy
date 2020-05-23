@@ -1,13 +1,11 @@
 endpoints:
-    issuer: https://localhost:5000
+    issuer: https://provider:5000
     authorize: /authorize
     token: /token
     userinfo: /userinfo
     jwks: /jwk
     registration: /register
     scim: /scim/v2
-    resource_server: https://localhost:5002
-    resource: /resource
 
 capabilities:
     scopes_supported: 
