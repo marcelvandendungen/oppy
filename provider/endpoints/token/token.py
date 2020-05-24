@@ -15,7 +15,9 @@ def create_blueprint(client_store, private_key, config):
 
         try:
             token_request = TokenRequest(client_store, private_key, config['endpoints']['issuer'])
-            resp = make_response(token_request.create_response(request))
+            payload = token_request.create_response(request)
+            logger.info(f'Token response: {payload}')
+            resp = make_response(payload)
 
             logger.info(str(resp))
 

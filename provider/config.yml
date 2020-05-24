@@ -6,9 +6,7 @@ endpoints:
     jwks: /jwk
     registration: /register
     scim: /scim/v2
-    resource_server: https://localhost:5002
-    resource: /resource
-
+ 
 capabilities:
     scopes_supported: 
         - openid

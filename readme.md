@@ -40,5 +40,7 @@ $ python -m webclient
 
 ```bash
 #!/bin/bash
+$ export PYTHONPATH="$HOME/dev/oppy"
+$ export KEY_LOCATION="https://localhost:5000/jwk"
 $ pytest [-v]
 ```

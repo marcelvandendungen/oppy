@@ -18,6 +18,31 @@ logger = init_logging(__name__)
 scopes = {}
 
 
+def read_pem(filename):
+    with open(filename, "rb") as f1:
+        key = f1.read()
+        return key
+
+
+def init_crypto():
+    """
+      Read private and public key from PEM file on disk
+    """
+    if not os.path.exists("./private.pem"):
+        raise IOError("private.pem not found or no permission to read")
+    private_key = read_pem("./private.pem")
+    if not os.path.exists("./public.pem"):
+        raise IOError("public.pem not found or no permission to read")
+    else:
+        public_key = read_pem("./public.pem")
+
+    return private_key, public_key
+
+
+keypair = init_crypto()
+private_key = keypair[0]
+public_key = keypair[1]
+
 JKWS_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['jwks']
 TOKEN_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['token']
 AUTHORIZE_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['authorize']
@@ -30,25 +55,29 @@ class TokenError(Exception):
     pass
 
 
+# Token = collections.namedtuple('Token', ['scopes', 'type', 'value'])
+
+
 class TokenStore:
     def __init__(self):
-        "key = type, value = list of tuples, each with of list of scopes and token"
+        "key = state, value = list of tuples, each with of list of scopes, type and token"
         self.tokens = collections.defaultdict(list)
 
-    def add(self, scope, token, type):
+    def add(self, state, scope, token, type):
         print(f'add {type} for {scope}')
-        self.tokens[type].append((scope.split(' '), token))
-        # self.tokens[(scope, type)] = token
+        self.tokens[state].append((scope.split(' '), type, token))
 
-    def get(self, scope, type):
-        print(f'get {type} for {scope}')
-        items = self.tokens[type]
-        for item in items:
-            # iterate through list of tuples
-            # find one with right scope(s)
-            if set(scope.split(' ')).issubset(set(item[0])):
-                print('found')
-                return item[1]
+    def get(self, state, scope, type):
+        states = state.split(' ')   # multiple space separated states are allowed
+        for s in states:
+            print(f'get {type} for {s} with {scope}')
+            items = self.tokens[s]
+            for item in items:
+                # iterate through list of tuples
+                # find one with right scope(s) and correct type
+                if set(scope.split(' ')).issubset(set(item[0])) and type == item[1]:
+                    print('found')
+                    return item[2]
 
         print('not found')
         # token = self.tokens.get((scope, type))
@@ -95,20 +124,27 @@ else:
     redirect_uri = client['redirect_uris'][0]
 
 
-logger.info('client_id: ' + client_id)
+logger.info(f'Registered client with client_id: {client_id}')
 
 
 @app.route("/")
 def index():
 
+    session_cookie = request.cookies.get('auth')
+
+    if not session_cookie:
+        return authorize_request(client, scope='openid profile email roles')
+    else:
+        state = session_cookie
+
     userinfo_claims = {}
-    id_token = tokencache.get('openid', 'id_token')
+    id_token = tokencache.get(state, 'openid', 'id_token')
     try:
         if id_token:
             logger.info('id_token found: ' + str(id_token))
             id_claims = get_token_claims(id_token, client_id)
 
-            access_token = tokencache.get('openid', 'access_token')
+            access_token = tokencache.get(state, 'openid', 'access_token')
             response = requests.get(USERINFO_ENDPOINT, headers={'Authorization': 'Bearer ' + access_token},
                                     verify=False)
             if response.status_code == 200:
@@ -120,18 +156,18 @@ def index():
         logger.warn('ID token expired: ', str(ex))
         return authorize_request(client, scope='openid')
 
-    access_token = tokencache.get('read write', 'access_token')
+    access_token = tokencache.get(state, 'read write', 'access_token')
     try:
         if access_token:
             logger.info('access token found: ' + access_token)
             response = requests.get(RESOURCE_ENDPOINT, headers={'Authorization': 'Bearer ' + access_token},
                                     verify=False)
             if response.status_code == 200:
-                return render_template('index.html', token=response.json(), userinfo=userinfo_claims, 
+                return render_template('index.html', token=response.json(), userinfo=userinfo_claims,
                                        name=id_claims['name'])
             elif response.status_code == 401:
                 logger.info("Access token is expired, refreshing...")
-                access_token = refresh_access_token('urn:my_service', 'read write')
+                access_token = refresh_access_token(state, 'urn:my_service', 'read write')
                 response = redirect('/')    # redirect to index page
                 response.set_cookie('token', access_token, samesite='Lax')
                 return response
@@ -141,6 +177,19 @@ def index():
 
     except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, TokenError):
         return authorize_request(client, scope='read write')
+
+
+def authenticated_session(token):
+    try:
+        if not token:
+            logger.info("Session cookie not found")
+            return None
+        claims = jwt.decode(str.encode(token), public_key, audience='https://localhost:5000', algorithms='RS256')
+        logger.info("Session cookie is valid")
+        return claims
+    except jwt.ExpiredSignatureError:
+        logger.info("Session cookie expired")
+        return None
 
 
 def authorize_request(client, scope):
@@ -169,11 +218,14 @@ def auth_code():
         code = request.form.get('code')
         state = request.form.get('state')
 
+    cookie = request.cookies.get('auth', '')
+
     logger.warning('code = ' + code)
     # get token using auth code
     get_tokens(code, state)
     # store access_token as cookie
     response = redirect('/')    # redirect to index page
+    response.set_cookie('auth', ' '.join([s for s in [cookie, state] if len(s) > 0]))
     return response
 
 
@@ -195,22 +247,22 @@ def get_tokens(auth_code, state):
     if response.status_code == 200:
         access_token = response.json()["access_token"]
         logger.info('access_token: ' + access_token)
-        tokencache.add(scope, access_token, 'access_token')
+        tokencache.add(state, scope, access_token, 'access_token')
         refresh_token = response.json().get("refresh_token")
         if refresh_token:
             logger.info('refresh_token: ' + refresh_token)
-            tokencache.add(scope, access_token, 'refresh_token')
+            tokencache.add(state, scope, refresh_token, 'refresh_token')
         id_token = response.json().get("id_token")
         if id_token:
             logger.info('id_token: ' + id_token)
-            tokencache.add(scope, id_token, 'id_token')
+            tokencache.add(state, scope, id_token, 'id_token')
     else:
         raise TokenError()
 
 
-def refresh_access_token(audience, scope):
+def refresh_access_token(subject, audience, scope):
 
-    refresh_token = tokencache.get(audience, 'refresh_token')
+    refresh_token = tokencache.get(subject, audience, 'refresh_token')
 
     if not refresh_token:
         raise TokenError()
@@ -228,10 +280,10 @@ def refresh_access_token(audience, scope):
     response = requests.post(TOKEN_ENDPOINT, headers=headers, data=data, verify=False)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
-        tokencache.add(scope, access_token, 'access_token')
+        tokencache.add(subject, scope, access_token, 'access_token')
         refresh_token = response.json().get('refresh_token')
         if refresh_token:
-            tokencache.add(scope, refresh_token, 'refresh_token')
+            tokencache.add(subject, scope, refresh_token, 'refresh_token')
         return access_token
 
     raise TokenError('Error refreshing token: ' + str(response))

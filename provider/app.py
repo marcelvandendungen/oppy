@@ -37,7 +37,9 @@ def init_crypto():
     return private_key, public_key
 
 
-config = init_config('provider/config.yml')
+config_path = sys.argv[1] if len(sys.argv) > 1 else 'provider/config.yml'
+
+config = init_config(config_path)
 logger = init_logging(__name__)
 
 keypair = init_crypto()
