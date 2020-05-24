@@ -8,6 +8,7 @@ import uuid
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
 from util import init_logging, init_config
+from oidcpy.crypto import read_keys
 
 from flask import Flask, request, redirect, render_template
 app = Flask(__name__)
@@ -18,30 +19,7 @@ logger = init_logging(__name__)
 scopes = {}
 
 
-def read_pem(filename):
-    with open(filename, "rb") as f1:
-        key = f1.read()
-        return key
-
-
-def init_crypto():
-    """
-      Read private and public key from PEM file on disk
-    """
-    if not os.path.exists("./private.pem"):
-        raise IOError("private.pem not found or no permission to read")
-    private_key = read_pem("./private.pem")
-    if not os.path.exists("./public.pem"):
-        raise IOError("public.pem not found or no permission to read")
-    else:
-        public_key = read_pem("./public.pem")
-
-    return private_key, public_key
-
-
-keypair = init_crypto()
-private_key = keypair[0]
-public_key = keypair[1]
+_, public_key = read_keys("./private.pem", "./public.pem")
 
 JKWS_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['jwks']
 TOKEN_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['token']
@@ -53,9 +31,6 @@ USERINFO_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['userinf
 
 class TokenError(Exception):
     pass
-
-
-# Token = collections.namedtuple('Token', ['scopes', 'type', 'value'])
 
 
 class TokenStore:
@@ -76,11 +51,8 @@ class TokenStore:
                 # iterate through list of tuples
                 # find one with right scope(s) and correct type
                 if set(scope.split(' ')).issubset(set(item[0])) and type == item[1]:
-                    print('found')
                     return item[2]
 
-        print('not found')
-        # token = self.tokens.get((scope, type))
         return None
 
 
