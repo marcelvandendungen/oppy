@@ -9,7 +9,6 @@ import uuid
 import yaml
 from jwcrypto import jwk
 from urllib.parse import urlencode, quote
-from util import init_logging, init_config
 from oidcpy.crypto import read_keys
 
 from flask import Flask, request, redirect, render_template
@@ -34,7 +33,7 @@ logger = init_logging(__name__)
 scopes = {}
 
 
-_, public_key = read_keys("./private.pem", "./public.pem")
+_, public_key = read_keys("./webclient/private.pem", "./webclient/public.pem")
 
 JKWS_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['jwks']
 TOKEN_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['token']

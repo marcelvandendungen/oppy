@@ -22,7 +22,7 @@ config_path = sys.argv[1] if len(sys.argv) > 1 else 'provider/config.yml'
 config = init_config(config_path)
 logger = init_logging(__name__)
 
-keypair = read_keys("./private.pem", "./public.pem")
+keypair = read_keys("./provider/private.pem", "./provider/public.pem")
 app = Flask(__name__, static_url_path='')
 # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['TESTING'] = os.environ.get('TESTING') == 'True'
