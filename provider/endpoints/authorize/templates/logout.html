@@ -16,6 +16,9 @@
 $(window).on('load', function() {
     // iframe(s) loaded, redirect to post logout URI
     redirect_url = "{{post_logout_uri}}"
+    {% if state %}
+    redirect_url += "?state={{state}}"
+    {% endif %}
     window.location.replace(redirect_url);
 });
 </script>

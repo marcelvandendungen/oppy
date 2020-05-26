@@ -139,7 +139,7 @@ def index():
                                     verify=False)
             if response.status_code == 200:
                 return render_template('index.html', token=response.json(), userinfo=userinfo_claims,
-                                       name=id_claims['name'], post_logout_uri=POST_LOGOUT_URI)
+                                       name=id_claims['name'], post_logout_uri=POST_LOGOUT_URI, state=str(uuid.uuid4()))
             elif response.status_code == 401:
                 logger.info("Access token is expired, refreshing...")
                 access_token = refresh_access_token(state, 'urn:my_service', 'read write')

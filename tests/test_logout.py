@@ -1,4 +1,5 @@
 import base64
+import uuid
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode
 from test_token import authenticate_user, decode_token
@@ -30,10 +31,12 @@ def test_logout_endpoint_with_id_token(test_client, confidential_client):
     response = test_client.post('/token', headers=headers, data=post_data)
     assert response.status_code == 200
 
+    state = str(uuid.uuid4())
     post_logout_uri = "https://localhost:5001/logged_out"
     query_params = {
         'id_token_hint': response.json['id_token'],
-        'post_logout_redirect_uri': post_logout_uri
+        'post_logout_redirect_uri': post_logout_uri,
+        'state': state
     }
     response = test_client.get('/logout?' + urlencode(query_params))
     assert response.status_code == 200
@@ -47,3 +50,4 @@ def test_logout_endpoint_with_id_token(test_client, confidential_client):
     # check for SCRIPT element
     script = soup.findAll('script')[1].text
     assert 'redirect_url = "https://localhost:5001/logged_out"' in script
+    assert state in script

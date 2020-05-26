@@ -13,6 +13,7 @@ def create_blueprint(config, public_key):
     @logout_bp.route('/logout', methods=["GET"])
     def logout():
         id_token = request.args.get('id_token_hint')
+        state = request.args.get('state')
         if id_token:
             # fetch audience from claims before verifying the token
             claims = jwt.decode(str.encode(id_token), public_key, algorithms='RS256', verify=False)
@@ -29,7 +30,7 @@ def create_blueprint(config, public_key):
             post_logout_uri = ''
 
         resp = make_response(render_template('logout.html', uri=client['frontchannel_logout_uri'],
-                                             post_logout_uri=post_logout_uri))
+                                             post_logout_uri=post_logout_uri, state=state))
         resp.set_cookie('session', '', expires=0)
         return resp
 
