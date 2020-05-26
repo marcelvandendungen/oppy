@@ -11,13 +11,14 @@ from provider.endpoints.metadata.metadata import create_blueprint as create_meta
 from provider.endpoints.consent.consent import create_blueprint as create_consent_blueprint
 from provider.endpoints.scim.scim import create_blueprint as create_scim_blueprint
 from provider.endpoints.userinfo.userinfo import create_blueprint as create_userinfo_blueprint
+from provider.endpoints.logout.logout import create_blueprint as create_logout_blueprint
 from provider.model.store.client_store import client_store
 from util import init_config, init_logging
 from oidcpy.authorize import AuthorizeError
 from oidcpy.crypto import read_keys
 
 
-config_path = sys.argv[1] if len(sys.argv) > 1 else 'provider/config.yml'
+config_path = 'provider/config.yml'
 
 config = init_config(config_path)
 logger = init_logging(__name__)
@@ -34,6 +35,7 @@ app.register_blueprint(create_metadata_blueprint(config))
 app.register_blueprint(create_consent_blueprint(config))
 app.register_blueprint(create_scim_blueprint(config))
 app.register_blueprint(create_userinfo_blueprint(config))
+app.register_blueprint(create_logout_blueprint(config, keypair.public))
 
 
 @app.errorhandler(Exception)

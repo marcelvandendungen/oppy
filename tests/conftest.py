@@ -35,7 +35,9 @@ def confidential_client(test_client):
         ],
         'token_endpoint_auth_method': 'client_secret_basic',
         'name': 'confidential_client',
-        'scope': "openid read write"
+        'scope': "openid read write",
+        "frontchannel_logout_uri": "https://localhost:5001/logout",
+        "post_logout_redirect_uris": ["https://localhost:5001/logged_out"]
     }
     return register_client(test_client, payload)
 
