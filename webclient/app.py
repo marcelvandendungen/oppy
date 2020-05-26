@@ -144,7 +144,6 @@ def index():
                 logger.info("Access token is expired, refreshing...")
                 access_token = refresh_access_token(state, 'urn:my_service', 'read write')
                 response = redirect('/')    # redirect to index page
-                response.set_cookie('token', access_token, samesite='Lax')
                 return response
         else:
             logger.info('access cookie not found')

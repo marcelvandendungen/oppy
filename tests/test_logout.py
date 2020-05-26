@@ -2,7 +2,7 @@ import base64
 import uuid
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode
-from test_token import authenticate_user, decode_token
+from test_token import authenticate_user
 
 
 def test_logout_endpoint_with_id_token(test_client, confidential_client):
