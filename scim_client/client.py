@@ -5,11 +5,8 @@ import yaml
 from util import init_config
 
 
-config = init_config('config.yml')
-
-
+config = init_config('scim_client/config.yml')
 issuer = config['endpoints']['issuer']
-config['endpoints']['registration']
 
 REGISTER_PATH = config['endpoints']['issuer'] + config['endpoints']['registration']
 TOKEN_PATH = config['endpoints']['issuer'] + config['endpoints']['token']

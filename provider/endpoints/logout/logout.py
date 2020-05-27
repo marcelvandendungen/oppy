@@ -14,16 +14,21 @@ def create_blueprint(config, public_key):
     def logout():
         id_token = request.args.get('id_token_hint')
         state = request.args.get('state')
-        if id_token:
-            # fetch audience from claims before verifying the token
-            claims = jwt.decode(str.encode(id_token), public_key, algorithms='RS256', verify=False)
-            client_id = claims['aud']
-            claims = jwt.decode(str.encode(id_token), public_key, audience=client_id, algorithms='RS256')
-        else:
-            session_cookie = request.cookies.get('session')
-            claims = jwt.decode(str.encode(session_cookie), public_key, audience='https://localhost:5000',
-                                algorithms='RS256')
-            client_id = claims['client_id']
+
+        try:
+            if id_token:
+                # fetch audience from claims before verifying the token
+                claims = jwt.decode(str.encode(id_token), public_key, algorithms='RS256', verify=False)
+                client_id = claims['aud']
+                claims = jwt.decode(str.encode(id_token), public_key, audience=client_id, algorithms='RS256')
+            else:
+                session_cookie = request.cookies.get('session')
+                claims = jwt.decode(str.encode(session_cookie), public_key, audience='https://localhost:5000',
+                                    algorithms='RS256')
+                client_id = claims['client_id']
+        except jwt.exceptions.ExpiredSignatureError:
+            return render_template('error.html', error="Your session has already expired.")
+
         client = client_store.get(client_id)
         post_logout_uri = request.args.get('post_logout_redirect_uri')
         if not post_logout_uri or post_logout_uri not in client['post_logout_redirect_uris']:
