@@ -11,7 +11,7 @@ from jwcrypto import jwk
 from urllib.parse import urlencode, quote
 from oidcpy.crypto import read_keys
 
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, make_response, render_template
 app = Flask(__name__)
 
 
@@ -41,6 +41,7 @@ AUTHORIZE_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['author
 REGISTRATION_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['registration']
 RESOURCE_ENDPOINT = config['endpoints']['resource_server'] + config['endpoints']['resource']
 USERINFO_ENDPOINT = config['endpoints']['issuer'] + config['endpoints']['userinfo']
+POST_LOGOUT_URI = config['endpoints']['webclient'] + config['endpoints']['post_logout']
 
 
 class TokenError(Exception):
@@ -89,7 +90,9 @@ def register_client(config):
         "grant_types": ["authorization_code"],
         "redirect_uris": ["https://localhost:5001/cb", "https://localhost:5003/cb"],
         "name": "confidential_client",
-        "scope": "read write openid profile email roles"
+        "scope": "read write openid profile email roles",
+        "frontchannel_logout_uri": "https://localhost:5001/logout",
+        "post_logout_redirect_uris": [POST_LOGOUT_URI]
     }
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
@@ -150,12 +153,11 @@ def index():
                                     verify=False)
             if response.status_code == 200:
                 return render_template('index.html', token=response.json(), userinfo=userinfo_claims,
-                                       name=id_claims['name'])
+                                       name=id_claims['name'], post_logout_uri=POST_LOGOUT_URI, state=str(uuid.uuid4()))
             elif response.status_code == 401:
                 logger.info("Access token is expired, refreshing...")
                 access_token = refresh_access_token(state, 'urn:my_service', 'read write')
                 response = redirect('/')    # redirect to index page
-                response.set_cookie('token', access_token, samesite='Lax')
                 return response
         else:
             logger.info('access cookie not found')
@@ -163,6 +165,19 @@ def index():
 
     except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, TokenError):
         return authorize_request(client, scope='read write')
+
+
+@app.route("/logout")
+def logout():
+    resp = make_response('')    # make empty response that clears cookies
+    resp.set_cookie('auth', '', expires=0)
+    resp.set_cookie('token', '', expires=0)
+    return resp, 204
+
+
+@app.route("/logged_out")
+def logged_out():
+    return render_template('post_logout.html')
 
 
 def authenticated_session(token):

@@ -9,3 +9,4 @@ PyYAML==5.3.1
 pycryptodome==3.9.7
 jwcrypto==0.7
 oidcpy==0.0.5
+Flask-RESTful==0.3.8

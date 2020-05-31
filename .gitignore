@@ -5,3 +5,5 @@ key.pem
 cert.pem
 .DS_Store
 .idea/
+htmlcov/
+.coverage

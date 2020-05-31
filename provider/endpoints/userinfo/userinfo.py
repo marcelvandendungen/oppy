@@ -16,7 +16,7 @@ def create_blueprint(config):
     @authorize(audience=AUDIENCE, scopes='openid')
     def userinfo():
         subject = get_subject_from_token()
-        user = user_store.get_by_name(subject)
+        user = user_store.get_by_id(subject)
         payload = {
             'sub': subject,
             'name': user['name']

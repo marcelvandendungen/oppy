@@ -7,3 +7,5 @@ endpoints:
     registration: /register
     resource_server: https://resource_server:5002
     resource: /resource
+    webclient: https://localhost:5001
+    post_logout: /logged_out

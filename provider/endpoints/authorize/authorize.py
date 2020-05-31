@@ -83,7 +83,8 @@ def create_blueprint(client_store, public_key, private_key):
             'iat': now,
             'nbf': now,
             'exp': now + 3600,
-            'name': principal.name
+            'name': principal.name,
+            'client_id': principal.client_id
         }
 
         token = jwt.encode(claims, private_key, algorithm='RS256')

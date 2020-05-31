@@ -11,7 +11,6 @@ def init_config(path):
 
 config = init_config('scim_client/config.yml')
 issuer = config['endpoints']['issuer']
-config['endpoints']['registration']
 
 REGISTER_PATH = config['endpoints']['issuer'] + config['endpoints']['registration']
 TOKEN_PATH = config['endpoints']['issuer'] + config['endpoints']['token']
