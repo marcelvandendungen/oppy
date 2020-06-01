@@ -40,6 +40,7 @@ app.register_blueprint(create_logout_blueprint(config, keypair.public))
 
 @app.errorhandler(Exception)
 def error_handler(ex):
+    logger.error(f'exception type: {type(ex)}')
     logger.exception(ex)
     if isinstance(ex, (jwt.ExpiredSignatureError, jwt.DecodeError, AuthorizeError)):
         return str(ex), 401

@@ -19,7 +19,9 @@ def init_logging(name):
     ""
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(filename='/app/webclient/log/log.txt', filemode='a',
+                        format='%(asctime)s - %(message)s', level=logging.INFO)
+    # logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
     return logger
 
 
@@ -122,8 +124,10 @@ def index():
     session_cookie = request.cookies.get('auth')
 
     if not session_cookie:
+        logger.info("No session cookie found, authorizing.")
         return authorize_request(client, scope='openid profile email roles')
     else:
+        logger.info("Session cookie found.")
         state = session_cookie
 
     userinfo_claims = {}
@@ -159,6 +163,8 @@ def index():
                 access_token = refresh_access_token(state, 'urn:my_service', 'read write')
                 response = redirect('/')    # redirect to index page
                 return response
+            else:
+                logger.warn(f'error from userinfo endpoint: {response.status_code}')
         else:
             logger.info('access cookie not found')
             return authorize_request(client, scope='read write')
@@ -194,12 +200,13 @@ def authenticated_session(token):
 
 
 def authorize_request(client, scope):
-    logger.info('Requesting token(s) with scope: ' + scope)
+    logger.info(f'Authorize request with scope: {scope} for client {client_id}')
     state = str(uuid.uuid4())
     scopes[state] = scope
-    return redirect(request_url(AUTHORIZE_ENDPOINT, client_id=client_id,
-                                redirect_uri=redirect_uri, response_type='code', state=state, scope=scope,
-                                response_mode='form_post'))
+    url = request_url(AUTHORIZE_ENDPOINT, client_id=client_id,
+                      redirect_uri=redirect_uri, response_type='code', state=state, scope=scope,
+                      response_mode='form_post')
+    return redirect(url)
 
 
 def request_url(url, **query_params):

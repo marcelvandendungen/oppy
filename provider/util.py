@@ -8,7 +8,10 @@ def init_logging(name):
     ""
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
+    logging.basicConfig(filename='/app/provider/log/log.txt', filemode='a',
+                        format='%(asctime)s - %(message)s', level=logging.INFO)
+    # logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
     return logger
 
 

@@ -130,7 +130,7 @@ class AuthorizeRequest:
         client = client_store.get(self.client_id)
 
         if not client:
-            raise BadAuthorizeRequestError('unknown_client', 'Client not registered')
+            raise BadAuthorizeRequestError('unknown_client', f'Client {self.client_id} not registered')
 
         return client
 
