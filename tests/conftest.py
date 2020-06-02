@@ -1,6 +1,6 @@
 import base64
 from urllib.parse import urlsplit, parse_qsl
-from provider.app import app
+from provider.app import app, init
 from provider.endpoints.scim.scim import USER_PATH, GROUP_PATH
 
 import json
@@ -13,6 +13,9 @@ class FixtureError(Exception):
 
 @pytest.fixture(scope='session')
 def test_client():
+
+    init('provider/config.yml')
+
     testing_client = app.test_client()
 
     ctx = app.app_context()
