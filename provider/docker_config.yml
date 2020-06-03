@@ -1,5 +1,5 @@
 endpoints:
-    issuer: https://localhost:5000
+    issuer: https://provider:5000
     authorize: /authorize
     token: /token
     userinfo: /userinfo

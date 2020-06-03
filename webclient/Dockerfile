@@ -14,8 +14,9 @@ COPY . /app/webclient
 
 ENV PYTHONPATH="/app"
 ENV KEY_LOCATION="https://provider:5000/jwk"
+ENV LOG_PATH="/app/webclient/log/log.txt"
 
 EXPOSE 5001
 
 ENTRYPOINT ["python3"]
-CMD ["-u", "webclient/app.py"]
+CMD ["-u", "webclient/__main__.py", "--config=webclient/docker_config.yml"]

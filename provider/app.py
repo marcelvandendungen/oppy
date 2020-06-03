@@ -18,24 +18,8 @@ from oidcpy.authorize import AuthorizeError
 from oidcpy.crypto import read_keys
 
 
-config_path = 'provider/config.yml'
-
-config = init_config(config_path)
-logger = init_logging(__name__)
-
-keypair = read_keys("./provider/private.pem", "./provider/public.pem")
 app = Flask(__name__, static_url_path='')
-# app.config['EXPLAIN_TEMPLATE_LOADING'] = True
-app.config['TESTING'] = os.environ.get('TESTING') == 'True'
-app.register_blueprint(create_authorize_blueprint(client_store, keypair.public, keypair.private))
-app.register_blueprint(create_token_blueprint(client_store, keypair.private, config))
-app.register_blueprint(create_register_blueprint(client_store))
-app.register_blueprint(create_jwk_blueprint())
-app.register_blueprint(create_metadata_blueprint(config))
-app.register_blueprint(create_consent_blueprint(config))
-app.register_blueprint(create_scim_blueprint(config))
-app.register_blueprint(create_userinfo_blueprint(config))
-app.register_blueprint(create_logout_blueprint(config, keypair.public))
+logger = None
 
 
 @app.errorhandler(Exception)
@@ -47,7 +31,28 @@ def error_handler(ex):
     return str(ex), 500
 
 
-def main():
+def init(config_path):
+    config = init_config(config_path)
+    global logger
+    logger = init_logging(__name__)
+
+    keypair = read_keys("./provider/private.pem", "./provider/public.pem")
+    # app.config['EXPLAIN_TEMPLATE_LOADING'] = True
+    app.config['TESTING'] = os.environ.get('TESTING') == 'True'
+    app.register_blueprint(create_authorize_blueprint(client_store, keypair.public, keypair.private))
+    app.register_blueprint(create_token_blueprint(client_store, keypair.private, config))
+    app.register_blueprint(create_register_blueprint(client_store))
+    app.register_blueprint(create_jwk_blueprint())
+    app.register_blueprint(create_metadata_blueprint(config))
+    app.register_blueprint(create_consent_blueprint(config))
+    app.register_blueprint(create_scim_blueprint(config))
+    app.register_blueprint(create_userinfo_blueprint(config))
+    app.register_blueprint(create_logout_blueprint(config, keypair.public))
+
+
+def main(config_path):
+
+    init(config_path)
     app.run(host='0.0.0.0', port=5000, debug=app.config['TESTING'],
             ssl_context=('provider/cert.pem', 'provider/key.pem'))
 

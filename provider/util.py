@@ -1,17 +1,20 @@
 import datetime
 import logging
+import os
 import yaml
 from urllib.parse import urlencode  # , urlparse, urlsplit, parse_qsl
 
 
 def init_logging(name):
-    ""
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
-    logging.basicConfig(filename='/app/provider/log/log.txt', filemode='a',
-                        format='%(asctime)s - %(message)s', level=logging.INFO)
-    # logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+    filepath = os.getenv('LOG_PATH')
+    if filepath:
+        logging.basicConfig(filename=filepath, filemode='a',
+                            format='%(asctime)s - %(message)s', level=logging.INFO)
+    else:
+        logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
     return logger
 
 

@@ -14,8 +14,9 @@ COPY . /app/provider
 
 ENV PYTHONPATH="/app"
 ENV KEY_LOCATION="provider/public.pem"
+ENV LOG_PATH="/app/provider/log/log.txt"
 
 EXPOSE 5000
 
 ENTRYPOINT ["python3"]
-CMD ["-u", "provider/app.py"]
+CMD ["-u", "provider/__main__.py", "--config=provider/docker_config.yml"]
