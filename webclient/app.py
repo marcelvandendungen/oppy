@@ -133,9 +133,11 @@ def index():
             response = requests.get(app.config.get('RESOURCE_ENDPOINT'), 
                                     headers={'Authorization': 'Bearer ' + access_token}, verify=False)
             if response.status_code == 200:
+                logout_url = request_url(app.config.get('LOGOUT_URI'), 
+                                         post_logout_redirect_uri=app.config.get('POST_LOGOUT_URI'),
+                                         state=str(uuid.uuid4()), id_token_hint=id_token)
                 return render_template('index.html', token=response.json(), userinfo=userinfo_claims,
-                                       name=id_claims['name'], post_logout_uri=app.config.get('POST_LOGOUT_URI'),
-                                       state=str(uuid.uuid4()))
+                                       name=id_claims['name'], logout_url=logout_url)
             elif response.status_code == 401:
                 logger.info("Access token is expired, refreshing...")
                 access_token = refresh_access_token(state, 'urn:my_service', 'read write')
@@ -284,6 +286,7 @@ def main(config_path):
     app.config['RESOURCE_ENDPOINT'] = config['endpoints']['resource_server'] + config['endpoints']['resource']
     app.config['USERINFO_ENDPOINT'] = config['endpoints']['issuer'] + config['endpoints']['userinfo']
     app.config['POST_LOGOUT_URI'] = config['endpoints']['webclient'] + config['endpoints']['post_logout']
+    app.config['LOGOUT_URI'] = config['endpoints']['issuer'] + config['endpoints']['logout']
 
     # read client id and secret from environment
     client_id = os.environ.get('CLIENT_ID')

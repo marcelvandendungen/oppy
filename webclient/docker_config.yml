@@ -4,6 +4,7 @@ endpoints:
     token: /token
     userinfo: /userinfo
     jwks: /jwk
+    logout: /logout
     registration: /register
     resource_server: https://resource_server:5002
     resource: /resource
