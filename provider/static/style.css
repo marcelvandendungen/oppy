@@ -28,3 +28,11 @@ td {
 .warning {
     color: red;
 }
+
+label {
+    display: block;
+}
+
+input {
+    display: block;
+}

@@ -16,15 +16,15 @@
 
                 <div>
                     <label for="username" title="username">user name:
-                        <input type="text" name="username">
+                        <input type="text" name="username" autofocus>
                     </label>
                 </div>
                 <label for="password" title="password">password:
-                    <input type="text" name="password">
+                    <input type="password" name="password">
                 </label>
 
                 <div>
-                    <input type="submit" value="Submit">
+                    <input type="submit" value="Sign in" onClick="this.form.submit(); this.disabled=true; this.value='Sending…';">
                 </div>
                 <input type="hidden" name="client_id" value="{{req.client_id}}">
                 {% if 'state' in req %}
