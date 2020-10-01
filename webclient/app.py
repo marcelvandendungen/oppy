@@ -28,7 +28,7 @@ def init_logging(name):
 
 
 def init_config(path):
-    config = yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
+    config = yaml.safe_load(open(path, 'r'))
     return config
 
 

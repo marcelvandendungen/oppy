@@ -5,7 +5,7 @@ import yaml
 
 
 def init_config(path):
-    config = yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
+    config = yaml.safe_load(open(path, 'r'))
     return config
 
 
@@ -81,7 +81,7 @@ def main(args):
     scim_client = register_client()
     print(str(scim_client))
     token = get_token(scim_client)
-    input_file = yaml.load(open('scim_client/users.yml', 'r'), Loader=yaml.FullLoader)
+    input_file = yaml.safe_load(open('scim_client/users.yml', 'r'))
     for user in input_file['users']:
         register_user(user, token)
         print("creating user: ", user)
