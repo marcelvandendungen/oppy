@@ -32,7 +32,7 @@ def create_blueprint(client_store, public_key, private_key):
 
     def process_authorization_request(client_store):
         """
-        Processes GET /authorize endpoint, verifies query paramters, returns login page if all
+        Processes GET /authorize endpoint, verifies query parameters, returns login page if all
         is correct
         """
         authorize_request = AuthorizeRequest.from_dictionary(request.args).validate(client_store)
